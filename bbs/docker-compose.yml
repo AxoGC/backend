@@ -1,0 +1,24 @@
+services:
+  bbs:
+    image: mcaxdev/bbs
+    container_name: axo-bbs
+    networks:
+      - mcaxdev
+    restart: unless-stopped
+    ports:
+      - 8087:8080
+    environment:
+      - JWT_KEY=5201314
+      - MYSQL_HOST=172.19.0.1
+      - MYSQL_USER=axo
+      - MYSQL_PASSWORD=Clairvoyance
+      - MYSQL_NAME=axo
+      - SSL_ENABLE=true
+      - SSL_CERT=/data/fullchain.pem
+      - SSL_KEY=/data/privkey.pem
+    volumes:
+      - ..:/data:ro
+
+networks:
+  mcaxdev:
+    external: true
