@@ -13,10 +13,10 @@ import (
 
 func GetReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "GET", "/reviews/:id", p.Preload(
-		cfg, &p.Option{Bind: p.Uri}, nil,
+		cfg, &p.Option{Bind: p.URI}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			ID uint `uri:"id" binding:"required"`
-		}) (int, error, *Resp) {
+		}) (int, *utils.Resp) {
 
 			var review struct {
 				ID        uint      `json:"id"`
@@ -53,12 +53,12 @@ func GetReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 					s.Model(new(utils.User)),
 				),
 			).Take(&review, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-				return 404, nil, &Resp{"找不到对应的评论", nil}
+				return 404, Res("找不到对应的评论", nil)
 			} else if err != nil {
-				return 500, err, &Resp{"查找评论失败", nil}
+				return 500, Res("查找评论失败", nil)
 			}
 
-			return 200, nil, &Resp{"", &review}
+			return 200, Res("", &review)
 		},
 	)
 }

@@ -4,31 +4,12 @@ import (
 	"errors"
 
 	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/preloader"
+	p "github.com/bestcb2333/gin-gorm-preloader/v2"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 func RegisterShops(r *gin.Engine, cfg *p.Config) {
-
-	r.GET("/goods", p.Preload(
-		cfg, &p.Option{}, nil,
-		func(c *gin.Context, u *utils.User, r *struct{}) {
-
-			var goods []struct {
-				ID    uint   `json:"id"`
-				Label string `json:"label"`
-				Price uint   `json:"price"`
-			}
-			if err := cfg.DB.Model(new(utils.Prop)).Find(&goods, "price IS NOT NULL").Error; err != nil {
-				c.JSON(500, Resp{"获取商品列表失败", nil})
-				c.Error(err)
-				return
-			}
-
-			c.JSON(200, Resp{"", goods})
-		},
-	))
 
 	r.POST("/goods/:id/buy", p.Preload(
 		cfg, &p.Option{Permission: p.Login, Bind: p.Uri | p.JSON}, nil,

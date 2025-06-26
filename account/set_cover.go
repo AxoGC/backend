@@ -8,13 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetCover(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/cover", []gin.HandlerFunc{
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login}, nil,
-			func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
-				return utils.UploadImageMidWare(cfg.Env.FilePath, "user-cover/", strconv.Itoa(int(u.ID)))(c)
-			},
-		),
-	}
+func SetCover(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/cover", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login}, nil,
+		func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
+			return utils.UploadImageMidWare(cfg.Env.FilePath, "user-cover/", strconv.Itoa(int(u.ID)))(c)
+		},
+	)
 }

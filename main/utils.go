@@ -1,6 +1,5 @@
 package main
 
-type Resp struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-}
+import "github.com/axogc/backend/utils"
+
+var Res = utils.Res

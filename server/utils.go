@@ -3,21 +3,13 @@ package main
 import (
 	"github.com/axogc/backend/utils"
 	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-)
-
-const (
-	None      = utils.None
-	Applicant = utils.Applicant
-	Member    = utils.Member
-	Admin     = utils.Admin
-	Owner     = utils.Owner
+	"github.com/redis/go-redis/v9"
 )
 
 type HandlerConfig struct {
 	*p.Config
 	Env *Config
+	RDB *redis.Client
 }
-
-type Resp = utils.Resp
 
 var Res = utils.Res

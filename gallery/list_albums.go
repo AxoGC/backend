@@ -11,7 +11,7 @@ func ListAlbums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 		p.Preload(
 			cfg.Config, &p.Option{Bind: p.Query}, nil,
 			func(c *gin.Context, u *utils.User, r *struct {
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				var albums []struct {
 					User struct {
@@ -19,13 +19,18 @@ func ListAlbums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 						Name string `json:"name"`
 					} `json:"user"`
 				}
-				if err := cfg.DB.Preload("User").Scopes(utils.Paginate(c, nil)).Find(&albums).Error; err != nil {
-					c.JSON(500, Resp{"获取相册列表失败", nil})
+				if err := cfg.DB.
+					Model(new(utils.Album)).
+					Preload("User").
+					Where("private = ?", false).
+					Scopes(utils.Paginate(c, nil)).
+					Find(&albums).
+					Error; err != nil {
 					c.Error(err)
-					return
+					return 500, Res("获取相册列表失败", nil)
 				}
 
-				c.JSON(200, Resp{"", albums})
+				return 200, Res("", albums)
 			},
 		),
 	}

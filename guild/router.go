@@ -26,7 +26,7 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 
 	r.Use(utils.LogMidWare(db))
 
-	utils.RegisterHandlers(r, &cfg, []utils.Handler[HandlerConfig]{
+	utils.RegisterHandlers(r, &cfg,
 		ListGuilds,
 		GetGuilds,
 		GetMyGuild,
@@ -40,7 +40,7 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		Quit,
 		Reject,
 		Transfer,
-	})
+	)
 
 	r.Use(utils.LogMidWare(db))
 

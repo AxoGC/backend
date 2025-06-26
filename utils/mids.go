@@ -12,31 +12,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SendRespGet(c *gin.Context, result *gorm.DB, data any) {
-	if err := result.Error; errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(404, Resp{"找不到对应的数据", nil})
-		return
-	} else if err != nil {
-		c.JSON(500, Resp{"查找失败", nil})
-		c.Error(err)
-		return
-	}
-	c.JSON(200, Resp{"查找成功", data})
-}
+type HandlerFunc[T any] func(c *gin.Context, u *User, r *T) (int, *Resp)
 
-func SendRespDelete(c *gin.Context, result *gorm.DB) {
-	if result.RowsAffected == 0 {
-		c.JSON(404, Resp{"找不到删除的数据", nil})
-		return
-	} else if result.Error != nil {
-		c.JSON(500, Resp{"删除失败", nil})
-		c.Error(result.Error)
-		return
-	}
-	c.JSON(200, Resp{fmt.Sprintf("成功删除 %d 条数据", result.RowsAffected), nil})
-}
-
-func AuthCaptchaMidWare(rdb *redis.Client) gin.HandlerFunc {
+func WithCaptchaAuth(rdb *redis.Client, hf gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var request struct {
@@ -65,10 +43,12 @@ func AuthCaptchaMidWare(rdb *redis.Client) gin.HandlerFunc {
 			c.AbortWithStatusJSON(400, Resp{"验证码错误", nil})
 			return
 		}
+
+		hf(c)
 	}
 }
 
-func AuthEmailMidWare(rdb *redis.Client) gin.HandlerFunc {
+func WithEmailAuth(rdb *redis.Client, hf gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var request struct {
@@ -97,6 +77,8 @@ func AuthEmailMidWare(rdb *redis.Client) gin.HandlerFunc {
 			c.AbortWithStatusJSON(400, Resp{"验证码错误", nil})
 			return
 		}
+
+		hf(c)
 	}
 }
 
@@ -110,9 +92,11 @@ func UploadImageMidWare(baseFolderPath, folderName, fileName string) func(c *gin
 		}
 
 		ext, err := GetExtByFileHeader(fileHeader)
-		if err != nil {
+		if errors.Is(err, ErrNotSupportedImageType) {
+			return 400, Res("文件类型有误", nil)
+		} else if err != nil {
 			c.Error(err)
-			return 400, &Resp{"文件类型有误", nil}
+			return 500, Res("读取文件失败", nil)
 		}
 
 		folderPath := filepath.Join(baseFolderPath, folderName)
@@ -154,10 +138,21 @@ func LogMidWare(db *gorm.DB) gin.HandlerFunc {
 				UserID: userId,
 			}
 			if err := db.Create(&log).Error; err != nil {
-				fmt.Println("Failed to log: %+v, because %v\n", &log, err)
+				fmt.Printf("Failed to log: %+v, because %v\n", &log, err)
 			} else {
-				fmt.Println("Log successfully: %+v\n", &log)
+				fmt.Printf("Log successfully: %+v\n", &log)
 			}
 		}
+	}
+}
+
+func WithRolesAuth[T any](roles []Role, hf HandlerFunc[T]) HandlerFunc[T] {
+	return func(c *gin.Context, u *User, r *T) (int, *Resp) {
+
+		if !u.HasAnyRole(roles...) {
+			return 403, Res("权限不足，访问被拒绝", nil)
+		}
+
+		return hf(c, u, r)
 	}
 }

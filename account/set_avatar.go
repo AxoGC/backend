@@ -8,13 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetAvatar(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/avatar", []gin.HandlerFunc{
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login}, nil,
-			func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
-				return utils.UploadImageMidWare(cfg.Env.FilePath, "user-avatar/", strconv.Itoa(int(u.ID)))(c)
-			},
-		),
-	}
+func SetAvatar(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/avatar", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login}, nil,
+		func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
+			return utils.UploadImageMidWare(cfg.Env.FilePath, "user-avatar/", strconv.Itoa(int(u.ID)))(c)
+		},
+	)
 }

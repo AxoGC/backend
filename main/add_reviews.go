@@ -11,18 +11,19 @@ import (
 
 func AddReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "POST", "/:type/:id/reviews", p.Preload(
-		cfg, &p.Option{Permission: p.Login, Bind: p.Uri | p.JSON}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			Type     string `uri:"type" binding:"required,oneof=docs posts albums reviews"`
 			ID       uint   `uri:"id" binding:"required"`
 			Content  string `json:"content"`
 			Attitude *bool  `json:"attitude"`
-		}) (int, error, *Resp) {
+		}) (int, *utils.Resp) {
 
 			if err := cfg.DB.Table(r.Type).Select("1").Take(new(int), r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-				return 404, nil, &Resp{"找不到对应的文档", nil}
+				return 404, Res("找不到对应的文档", nil)
 			} else if err != nil {
-				return 500, err, &Resp{"查找文档失败", nil}
+				c.Error(err)
+				return 500, Res("查找文档失败", nil)
 			}
 
 			if err, ok := cfg.DB.Transaction(func(tx *gorm.DB) error {
@@ -34,19 +35,21 @@ func AddReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 					ReviewableID:   r.ID,
 					ReviewableType: r.Type,
 				}).Error; err != nil {
-					return utils.NewTxData(500, err, "创建评论失败")
+					c.Error(err)
+					return utils.TxRes(500, Res("创建评论失败", nil))
 				}
 
 				if err := tx.Table(r.Type).Where(r.ID).Update("review_count", gorm.Expr("review_count + ?", 1)).Error; err != nil {
-					return utils.NewTxData(500, err, "修改评论数量失败")
+					c.Error(err)
+					return utils.TxRes(500, Res("修改评论数量失败", nil))
 				}
 
 				return nil
-			}).(*utils.TxData); ok {
-				return err.Code, err.Err, &Resp{err.Message, nil}
+			}).(*utils.TxResp[utils.Resp]); ok {
+				return err.Code, err.Data
 			}
 
-			return 200, nil, &Resp{"评论发送成功", nil}
+			return 200, Res("评论发送成功", nil)
 		},
 	)
 }

@@ -29,48 +29,37 @@ var Tables = []any{
 }
 
 type DictSlug string
-type Game DictSlug
-type Role DictSlug
-type GuildRole DictSlug
-type Function DictSlug
 
 const (
-	MCBE     Game = "game:mcbe"
-	MCJE     Game = "game:mcje"
-	DST      Game = "game:dst"
-	Terraria Game = "game:terraria"
-	Stardew  Game = "game:stardew"
+	GameMCBE     DictSlug = "game:mcbe"
+	GameMCJE     DictSlug = "game:mcje"
+	GameDST      DictSlug = "game:dst"
+	GameTerraria DictSlug = "game:terraria"
+	GameStardew  DictSlug = "game:stardew"
 
-	GuildNone      GuildRole = "guild:none"
-	GuildApplicant GuildRole = "guild:applicant"
-	GuildMember    GuildRole = "guild:member"
-	GuildAdmin     GuildRole = "guild:admin"
-	GuildOwner     GuildRole = "guild:owner"
+	GuildNone      DictSlug = "guild:none"
+	GuildApplicant DictSlug = "guild:applicant"
+	GuildMember    DictSlug = "guild:member"
+	GuildAdmin     DictSlug = "guild:admin"
+	GuildOwner     DictSlug = "guild:owner"
 
-	BlindBox Function = "function:blindbox"
-
-	Admin       Role = "role:admin"
-	WikiAdmin   Role = "role:wikiAdmin"
-	BBSAdmin    Role = "role:bbsAdmin"
-	ReviewAdmin Role = "role:reviewAdmin"
+	FunctionBlindBox DictSlug = "function:blindbox"
 )
 
 var DictData = []Dict{
-	{0, DictSlug(MCBE), "我的世界基岩版"},
-	{0, DictSlug(MCJE), "我的世界Java版"},
-	{0, DictSlug(DST), "饥荒联机版"},
-	{0, DictSlug(Terraria), "泰拉瑞亚"},
-	{0, DictSlug(Stardew), "星露谷物语"},
+	{0, GameMCBE, "我的世界基岩版"},
+	{0, GameMCJE, "我的世界Java版"},
+	{0, GameDST, "饥荒联机版"},
+	{0, GameStardew, "星露谷物语"},
+	{0, GameTerraria, "泰拉瑞亚"},
 
-	{0, DictSlug(GuildNone), "无公会"},
-	{0, DictSlug(GuildApplicant), "申请中"},
-	{0, DictSlug(GuildMember), "正式会员"},
-	{0, DictSlug(GuildAdmin), "管理员"},
-	{0, DictSlug(GuildOwner), "会长"},
+	{0, GuildNone, "无公会"},
+	{0, GuildApplicant, "申请中"},
+	{0, GuildMember, "正式会员"},
+	{0, GuildAdmin, "管理员"},
+	{0, GuildOwner, "会长"},
 
-	{0, DictSlug(BlindBox), "惊喜盲盒"},
-
-	{0, DictSlug(Admin), "管理员"},
+	{0, FunctionBlindBox, "惊喜盲盒"},
 }
 
 type Dict struct {
@@ -86,6 +75,7 @@ type User struct {
 	Name        string         `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
 	Exp         uint           `gorm:"not null;comment:经验值"`
 	Password    string         `gorm:"type:CHAR(64);not null;comment:密码"`
+	Admin       bool           `gorm:"not null;comment:是否管理员"`
 	Gender      *bool          `gorm:"comment:性别"`
 	Profile     string         `gorm:"type:VARCHAR(255);not null;comment:个人介绍"`
 	Birthday    *time.Time     `gorm:"comment:生日"`
@@ -102,7 +92,6 @@ type User struct {
 	GuildRoleID uint           `gorm:"index;comment:公会角色"`
 	GuildRole   Dict           `gorm:"constraint:OnDelete:RESTRICT"`
 	Setting     map[string]any `gorm:"type:JSON;serializer:json;comment:用户设置"`
-	Roles       []UserRole
 }
 
 type Donation struct {

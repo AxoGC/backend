@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -31,6 +31,8 @@ var MimeToExt = map[string]string{
 	"image/webp": ".webp",
 }
 
+var ErrNotSupportedImageType = errors.New("not supported image file type")
+
 func GetExtByFileHeader(fh *multipart.FileHeader) (string, error) {
 
 	file, err := fh.Open()
@@ -48,31 +50,10 @@ func GetExtByFileHeader(fh *multipart.FileHeader) (string, error) {
 	mime := http.DetectContentType(buf)
 	ext, exists := MimeToExt[mime]
 	if !exists {
-		return "", fmt.Errorf("no such file type: %s", mime)
+		return "", ErrNotSupportedImageType
 	}
 
 	return ext, nil
-}
-
-func Get[T any](url string) (*T, error) {
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var data T
-	if err := json.Unmarshal(bytes, &data); err != nil {
-		return nil, err
-	}
-
-	return &data, nil
 }
 
 func RandomCode(length uint, withLetters bool) string {
@@ -145,11 +126,10 @@ func TxRes[T any](code int, data *T) error {
 	return &TxResp[T]{Code: code, Data: data}
 }
 
-type Handler[T any] func(cfg *T) (string, string, []gin.HandlerFunc)
+type Handler[T any] func(cfg *T) (string, string, gin.HandlerFunc)
 
 func RegisterHandlers[T any](r *gin.Engine, cfg *T, handlers ...Handler[T]) {
 	for _, handler := range handlers {
-		method, path, funcs := handler(cfg)
-		r.Handle(method, path, funcs...)
+		r.Handle(handler(cfg))
 	}
 }

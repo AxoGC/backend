@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddForumGroups(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/forum-groups", []gin.HandlerFunc{
-		p.Preload(
-			&cfg.Config, &p.Option{Permission: p.Admin, Bind: p.JSON}, nil,
+func AddForumGroups(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/forum-groups", p.Preload(
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.JSON, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				Label string `json:"label" binding:"required"`
 				Sort  int    `json:"sort"`
@@ -28,5 +29,5 @@ func AddForumGroups(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				}
 			},
 		),
-	}
+	)
 }

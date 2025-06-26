@@ -1,31 +1,39 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/axogc/backend/utils"
 	p "github.com/bestcb2333/gin-gorm-preloader/v2"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func EditImages(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/images/:id", []gin.HandlerFunc{
+	return "PATCH", "/images/:id", []gin.HandlerFunc{
 		p.Preload(
 			cfg.Config, &p.Option{Permission: p.Login, Bind: p.Uri | p.JSON}, nil,
 			func(c *gin.Context, u *utils.User, r *struct {
 				ID    uint   `uri:"id" binding:"required"`
 				Label string `json:"label"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
-				// 需要权限检查器
-
-				if result := cfg.DB.Where(&utils.Image{ID: r.ID}).Update("label", r.Label); result.RowsAffected == 0 {
-					c.JSON(404, Resp{"找不到对应的图片", nil})
-					return
-				} else if result.Error != nil {
-					c.JSON(500, Resp{"更新图片标题失败", nil})
-					return
+				var image utils.Image
+				if err := cfg.DB.Preload("Album").Take(&image, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+					return 404, Res("找不到对应的图片", nil)
+				} else if err != nil {
+					c.Error(err)
+					return 500, Res("查找图片失败", nil)
+				} else if !u.Admin && u.ID != image.UserID && u.ID != image.Album.UserID {
+					return 403, Res("你没有权限更新该图片", nil)
 				}
 
-				c.JSON(200, Resp{"更新成功", nil})
+				if err := cfg.DB.Where(&utils.Image{ID: r.ID}).Update("label", r.Label).Error; err != nil {
+					c.Error(err)
+					return 500, Res("更新图片标题失败", nil)
+				}
+
+				return 200, Res("更新成功", nil)
 			},
 		),
 	}

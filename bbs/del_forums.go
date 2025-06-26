@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DelForums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "DELETE", "/forums/:slug", []gin.HandlerFunc{
-		p.Preload(
-			&cfg.Config, &p.Option{Permission: p.Admin, Bind: p.Uri}, nil,
+func DelForums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "DELETE", "/forums/:slug", p.Preload(
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				Slug string `uri:"slug" binding:"required"`
 			}) (int, *Resp) {
@@ -24,5 +25,5 @@ func DelForums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				}
 			},
 		),
-	}
+	)
 }

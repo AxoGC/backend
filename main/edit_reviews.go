@@ -11,27 +11,27 @@ import (
 
 func EditReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "PATCH", "/reviews/:id", p.Preload(
-		cfg, &p.Option{Permission: p.Login, Bind: p.Uri | p.JSON}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			ID       uint   `uri:"id" binding:"required"`
 			Attitude *bool  `json:"attitude" binding:"required"`
 			Content  string `json:"content"`
-		}) (int, error, *Resp) {
+		}) (int, *utils.Resp) {
 
 			var review utils.Review
 			if err := cfg.DB.Take(&review, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-				return 404, nil, &Resp{"找不到对应的评论", nil}
+				return 404, Res("找不到对应的评论", nil)
 			} else if err != nil {
-				return 500, err, &Resp{"查找评论失败", nil}
-			} else if review.UserID != u.ID && !u.Admin {
-				return 403, nil, &Resp{"你没有权限修改此评论", nil}
+				return 500, Res("查找评论失败", nil)
+			} else if review.UserID != u.ID && !u.HasAnyRole(utils.Admin, utils.ReviewAdmin) {
+				return 403, Res("你没有权限修改此评论", nil)
 			}
 
 			if err := cfg.DB.Where(&utils.Review{ID: r.ID}).Select("attitude", "content").Updates(r).Error; err != nil {
-				return 500, err, &Resp{"评论修改失败", nil}
+				return 500, Res("评论修改失败", nil)
 			}
 
-			return 200, nil, &Resp{"评论修改成功", nil}
+			return 200, Res("评论修改成功", nil)
 		},
 	)
 }

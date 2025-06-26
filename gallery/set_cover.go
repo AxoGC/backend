@@ -2,18 +2,20 @@ package main
 
 import (
 	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/preloader"
+	p "github.com/bestcb2333/gin-gorm-preloader/v2"
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterCover(r *gin.Engine, cfg *p.Config, config *Config) {
-	r.POST("/cover", p.Preload(
-		cfg, &p.Option{Bind: p.Other, Permission: p.Login}, nil,
-		func(c *gin.Context, u *utils.User, r *struct {
-			Slug string `form:"slug" binding:"required,min=3,alphanum"`
-		}) {
+func SetCover(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
+	return "POST", "/albums/:slug/cover", []gin.HandlerFunc{
+		p.Preload(
+			cfg.Config, &p.Option{Bind: p.Other, Permission: p.Login}, nil,
+			func(c *gin.Context, u *utils.User, r *struct {
+				Slug string `uri:"slug" binding:"required,min=3,alphanum"`
+			}) (int, *utils.Resp) {
 
-			utils.UploadImageMidWare(config.FilePath, "album-cover/", r.Slug)(c)
-		},
-	))
+				return utils.UploadImageMidWare(cfg.Env.FilePath, "album-cover/", r.Slug)(c)
+			},
+		),
+	}
 }

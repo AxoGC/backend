@@ -9,7 +9,7 @@ import (
 func GetCarousels(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "GET", "/carousels", p.Preload(
 		cfg, nil, nil,
-		func(c *gin.Context, u *utils.User, r *struct{}) (int, error, *Resp) {
+		func(c *gin.Context, u *utils.User, r *struct{}) (int, *utils.Resp) {
 
 			var carousels []struct {
 				ID       uint   `json:"id"`
@@ -20,10 +20,10 @@ func GetCarousels(cfg *p.Config) (string, string, gin.HandlerFunc) {
 			if err := cfg.DB.Model(new(utils.Image)).Joins("Album").Find(
 				&carousels, "albums.path = ?", "carousel",
 			).Error; err != nil {
-				return 500, err, &Resp{"获取轮播图相册失败", nil}
+				return 500, Res("获取轮播图相册失败", nil)
 			}
 
-			return 200, nil, &Resp{"", carousels}
+			return 200, Res("", carousels)
 		},
 	)
 }

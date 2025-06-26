@@ -6,16 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetMyinfo(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "GET", "/myinfo", []gin.HandlerFunc{
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login}, nil,
-			func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
-				return 200, Res("", gin.H{
-					"id":   u.ID,
-					"name": u.Name,
-				})
-			},
-		),
-	}
+func GetMyinfo(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "GET", "/myinfo", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login}, nil,
+		func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
+			return 200, Res("", gin.H{
+				"id":   u.ID,
+				"name": u.Name,
+			})
+		},
+	)
 }

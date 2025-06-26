@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DelDocs(cfg *p.Config) (string, string, []gin.HandlerFunc) {
-	return "DELETE", "/docs/:slug", []gin.HandlerFunc{
-		p.Preload(
-			cfg, &p.Option{Permission: p.Admin, Bind: p.Uri}, nil,
+func DelDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
+	return "DELETE", "/docs/:slug", p.Preload(
+		cfg, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				Slug string `uri:"slug" binding:"required"`
 			}) (int, *utils.Resp) {
@@ -24,5 +25,5 @@ func DelDocs(cfg *p.Config) (string, string, []gin.HandlerFunc) {
 				}
 			},
 		),
-	}
+	)
 }

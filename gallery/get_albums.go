@@ -11,12 +11,13 @@ import (
 )
 
 func GetAlbums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/albums", []gin.HandlerFunc{
+	return "GET", "/albums", []gin.HandlerFunc{
 		p.Preload(
-			cfg.Config, &p.Option{Bind: p.Uri | p.Query}, nil,
+			cfg.Config, &p.Option{Bind: p.Uri | p.Query, Permission: p.Auto}, nil,
 			func(c *gin.Context, u *utils.User, r *struct {
-				Path string `uri:"path" binding:"required"`
-			}) (int, *Resp) {
+				Slug string `uri:"slug" binding:"required"`
+				All  bool   `form:"all"`
+			}) (int, *utils.Resp) {
 
 				var album struct {
 					User struct {
@@ -31,33 +32,37 @@ func GetAlbums(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 						AlbumID  uint   `json:"albumId"`
 					} `json:"images"`
 					Reviews []struct {
-						ID        uint   `json:"id"`
-						Content   string `json:"content"`
-						UserID    uint   `json:"userId"`
-						ReferID   uint   `json:"referId"`
-						ReferType string `json:"referType"`
-						User      struct {
+						ID             uint   `json:"id"`
+						Content        string `json:"content"`
+						UserID         uint   `json:"userId"`
+						ReviewableID   uint   `json:"reviewableId"`
+						ReviewableType string `json:"reviewableType"`
+						User           struct {
 							ID   uint   `json:"id"`
 							Name string `json:"name"`
 						}
-					} `json:"reviews"`
+					} `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:albums"`
 				}
 
-				if err := cfg.DB.Model(new(utils.Album)).Preload("User").Preload("Images",
+				query := cfg.DB.Model(new(utils.Album)).Preload("User").Preload("Images",
 					utils.Paginate(c, &utils.PaginateConfig{KeyPrefix: "images"}),
 				).Preload("Reviews",
 					utils.Paginate(c, &utils.PaginateConfig{KeyPrefix: "users"}),
 					s.Preload("User"),
-				).First(&album, "path = ?", r.Path).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-					c.JSON(400, Resp{"不存在这个相册", nil})
-					return
-				} else if err != nil {
-					c.JSON(500, Resp{"获取相册失败", nil})
-					c.Error(err)
-					return
+				)
+
+				if !r.All || !(u != nil && u.Admin) {
+					query = query.Where("private = ?", false)
 				}
 
-				c.JSON(200, Resp{"", &album})
+				if err := query.First(&album, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+					return 400, Res("不存在这个相册", nil)
+				} else if err != nil {
+					c.Error(err)
+					return 500, Res("获取相册失败", nil)
+				}
+
+				return 200, Res("", &album)
 			},
 		),
 	}

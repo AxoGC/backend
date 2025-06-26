@@ -12,14 +12,14 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 
 	cfg := p.Config{}
 
-	utils.RegisterHandlers(r, &cfg, []utils.Handler[p.Config]{
+	utils.RegisterHandlers(r, &cfg,
 		GetReviews,
 		AddReviews,
 		EditReviews,
 		DelReviews,
 
 		GetCarousels,
-	})
+	)
 
 	return r
 }

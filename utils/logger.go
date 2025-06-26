@@ -1,10 +1,7 @@
 package utils
 
 import (
-	"errors"
-
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type Resper struct{}
@@ -23,13 +20,4 @@ type Resp struct {
 
 func Res(message string, data any) *Resp {
 	return &Resp{Message: message, Data: data}
-}
-
-func HandleQueryError(c *gin.Context, err error, msgNotFound, msgError string) {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(404, Resp{msgNotFound, nil})
-	} else if err != nil {
-		c.JSON(500, Resp{msgError, nil})
-		c.Error(err)
-	}
 }

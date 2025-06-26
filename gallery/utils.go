@@ -27,6 +27,4 @@ func HasPerm(user *utils.User, album *utils.Album) bool {
 	return false
 }
 
-type Resp = utils.Resp
-
-var res = utils.Res
+var Res = utils.Res

@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func EditForumGroups(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "PATCH", "/forum-groups/:id", []gin.HandlerFunc{
-		p.Preload(
-			&cfg.Config, &p.Option{Permission: p.Admin, Bind: p.Uri | p.JSON}, nil,
+func EditForumGroups(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "PATCH", "/forum-groups/:id", p.Preload(
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				ID    uint   `uri:"id" binding:"required"`
 				Label string `json:"label" binding:"required"`
@@ -31,5 +32,5 @@ func EditForumGroups(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				}
 			},
 		),
-	}
+	)
 }

@@ -17,7 +17,7 @@ func GetImages(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 			cfg.Config, &p.Option{Bind: p.Uri}, nil,
 			func(c *gin.Context, u *utils.User, r *struct {
 				ID uint `uri:"id" binding:"required"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				var image struct {
 					CreatedAt time.Time `json:"createdAt"`
@@ -40,15 +40,13 @@ func GetImages(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				).Preload("Album",
 					s.Model(new(utils.Album)),
 				).First(&image, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-					c.JSON(404, Resp{"不存在此图片", nil})
-					return
+					return 404, Res("不存在此图片", nil)
 				} else if err != nil {
-					c.JSON(500, Resp{"获取图片失败", nil})
 					c.Error(err)
-					return
+					return 500, Res("获取图片失败", nil)
 				}
 
-				c.JSON(200, Resp{"", &image})
+				return 200, Res("", &image)
 			},
 		),
 	}

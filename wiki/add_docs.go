@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddDocs(cfg *p.Config) (string, string, []gin.HandlerFunc) {
-	return "POST", "/doc-groups/:docGroupId/docs", []gin.HandlerFunc{
-		p.Preload(
-			cfg, &p.Option{Permission: p.Admin, Bind: p.JSON}, nil,
+func AddDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
+	return "POST", "/doc-groups/:docGroupId/docs", p.Preload(
+		cfg, &p.Option{Login: p.Login, Bind: p.JSON, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				Slug       string `json:"slug" binding:"required,min=3,alphanum"`
 				Title      string `json:"title" binding:"required"`
@@ -36,9 +37,9 @@ func AddDocs(cfg *p.Config) (string, string, []gin.HandlerFunc) {
 					c.Error(err)
 					return 500, Res("创建文档失败", nil)
 				} else {
-					return 200, Res("文档创建成功", nil)
+					return 201, Res("文档创建成功", nil)
 				}
 			},
 		),
-	}
+	)
 }

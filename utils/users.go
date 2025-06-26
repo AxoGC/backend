@@ -32,3 +32,23 @@ func (u *User) CostCoin(db *gorm.DB, amount uint) error {
 
 	return nil
 }
+
+func (u *User) HasAnyRole(roles ...Role) bool {
+	if u == nil {
+		return false
+	}
+
+	// 构建一个 map 用于快速匹配目标角色
+	roleSet := make(map[DictSlug]struct{}, len(roles))
+	for _, role := range roles {
+		roleSet[DictSlug(role)] = struct{}{}
+	}
+
+	// 遍历用户已有的角色
+	for _, userRole := range u.Roles {
+		if _, ok := roleSet[userRole.Role.Slug]; ok {
+			return true
+		}
+	}
+	return false
+}

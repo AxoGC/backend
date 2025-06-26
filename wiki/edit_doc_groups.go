@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func EditDocGroups(cfg *p.Config) (string, string, []gin.HandlerFunc) {
-	return "PATCH", "/doc-groups/:id", []gin.HandlerFunc{
-		p.Preload(
-			cfg, &p.Option{Permission: p.Admin, Bind: p.Uri | p.JSON}, nil,
+func EditDocGroups(cfg *p.Config) (string, string, gin.HandlerFunc) {
+	return "PATCH", "/doc-groups/:id", p.Preload(
+		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		utils.WithRolesAuth(
+			[]utils.Role{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
 				ID    uint   `uri:"id" binding:"required"`
 				Label string `json:"label" binding:"required"`
@@ -31,5 +32,5 @@ func EditDocGroups(cfg *p.Config) (string, string, []gin.HandlerFunc) {
 				}
 			},
 		),
-	}
+	)
 }
