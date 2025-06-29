@@ -12,23 +12,18 @@ import (
 func RegisterShops(r *gin.Engine, cfg *p.Config) {
 
 	r.POST("/goods/:id/buy", p.Preload(
-		cfg, &p.Option{Permission: p.Login, Bind: p.Uri | p.JSON}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			ID    uint `uri:"id" binding:"required"`
 			Count uint `json:"count" binding:"required"`
-		}) {
+		}) (int, *utils.Resp) {
 
-			var prop utils.Prop
+			var goods []utils.Good
 			if err := cfg.DB.Take(&prop, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
-				c.JSON(404, Resp{"不存在该商品", nil})
-				return
+				return 404, Res("不存在该商品", nil)
 			} else if err != nil {
-				c.JSON(500, Resp{"查找商品失败", nil})
 				c.Error(err)
-				return
-			} else if prop.Price == nil {
-				c.JSON(400, Resp{"该商品尚不出售", nil})
-				return
+				return 500, Res("查找商品失败", nil)
 			}
 
 			if err, ok := cfg.DB.Transaction(func(tx *gorm.DB) error {

@@ -5,16 +5,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ListServers(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "GET", "/servers", []gin.HandlerFunc{
-		func(c *gin.Context) {
+func ListServers(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "GET", "/servers", func(c *gin.Context) {
 
-			var servers []struct {
+		type Data struct {
+			Slug   string `json:"slug"`
+			Label  string `json:"label"`
+			Port   uint16 `json:"port"`
+			Game   string `json:"game"`
+			Online *int64 `json:"online"`
+		}
+
+		var datas []Data
+		var servers []utils.Server
+		if err := cfg.DB.Preload("Game").Find(&servers).Error; err != nil {
+			c.JSON(500, Res("获取服务器列表失败", nil))
+			return
+		}
+
+		for _, srv := range servers {
+			online, err := srv.GetOnlineCount(cfg.Env.ServerHost)
+			if err != nil {
+				c.Error(err)
 			}
+			datas = append(datas, Data{
+				Slug:   srv.Slug,
+				Label:  srv.Label,
+				Port:   srv.Port,
+				Game:   srv.Game.Label,
+				Online: online,
+			})
+		}
 
-			if err := cfg.DB.Model(new(utils.Server)).Find(&servers).Error; err != nil {
-
-			}
-		},
+		c.JSON(200, Res("", datas))
 	}
 }

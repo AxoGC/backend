@@ -131,11 +131,11 @@ func LogMidWare(db *gorm.DB) gin.HandlerFunc {
 
 		for _, err := range c.Errors.Errors() {
 			log := Log{
-				Path:   c.Request.URL.Path,
-				Method: c.Request.Method,
-				Status: c.Writer.Status(),
-				Error:  err,
-				UserID: userId,
+				Path:    c.Request.URL.Path,
+				Method:  c.Request.Method,
+				Status:  c.Writer.Status(),
+				Message: err,
+				UserID:  userId,
 			}
 			if err := db.Create(&log).Error; err != nil {
 				fmt.Printf("Failed to log: %+v, because %v\n", &log, err)
@@ -146,7 +146,7 @@ func LogMidWare(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func WithRolesAuth[T any](roles []Role, hf HandlerFunc[T]) HandlerFunc[T] {
+func WithRolesAuth[T any](roles []RoleID, hf HandlerFunc[T]) HandlerFunc[T] {
 	return func(c *gin.Context, u *User, r *T) (int, *Resp) {
 
 		if !u.HasAnyRole(roles...) {

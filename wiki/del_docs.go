@@ -8,11 +8,11 @@ import (
 
 func DelDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "DELETE", "/docs/:slug", p.Preload(
-		cfg, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.WikiAdmin},
+			[]utils.RoleID{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				Slug string `uri:"slug" binding:"required"`
+				Slug string `uri:"slug"`
 			}) (int, *utils.Resp) {
 
 				if result := cfg.DB.Delete(new(utils.Doc), "slug = ?", r.Slug); result.RowsAffected == 0 {

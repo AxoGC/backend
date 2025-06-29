@@ -10,6 +10,4 @@ type HandlerConfig struct {
 	Env *Config
 }
 
-type Resp = utils.Resp
-
 var Res = utils.Res

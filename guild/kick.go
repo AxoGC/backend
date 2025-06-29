@@ -7,13 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func Kick(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/kick", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, Admin, Owner), p.Preload(
-			cfg.Config, &p.Option{}, nil,
+func Kick(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/kick", p.Preload(
+		cfg.Config, &p.Option{}, nil,
+		WithGuildRolesAuth(
+			[]utils.DictID{Admin, Owner},
 			func(c *gin.Context, u *utils.User, r *struct {
 				IDs []uint `json:"ids"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				if err, ok := cfg.DB.Transaction(func(tx *gorm.DB) error {
 
@@ -34,12 +35,12 @@ func Kick(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 					}
 
 					return nil
-				}).(*utils.TxResp[Resp]); ok {
+				}).(*utils.TxResp[utils.Resp]); ok {
 					return err.Code, Res(err.Data.Message, nil)
 				}
 
 				return 200, Res("成员踢出成功", nil)
 			},
 		),
-	}
+	)
 }

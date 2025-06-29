@@ -23,7 +23,7 @@ func EditReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 				return 404, Res("找不到对应的评论", nil)
 			} else if err != nil {
 				return 500, Res("查找评论失败", nil)
-			} else if review.UserID != u.ID && !u.HasAnyRole(utils.Admin, utils.ReviewAdmin) {
+			} else if review.UserID != u.ID && !u.HasAnyRole(utils.RoleAdmin, utils.RoleReviewAdmin) {
 				return 403, Res("你没有权限修改此评论", nil)
 			}
 

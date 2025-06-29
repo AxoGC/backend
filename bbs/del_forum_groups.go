@@ -8,15 +8,15 @@ import (
 
 func DelForumGroups(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "DELETE", "/forum-groups/:id", p.Preload(
-		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.BBSAdmin},
+			[]utils.RoleID{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				ID uint `uri:"id" binding:"required"`
-			}) (int, *Resp) {
+				ID uint `uri:"id"`
+			}) (int, *utils.Resp) {
 
 				if result := cfg.DB.Delete(&utils.ForumGroup{ID: r.ID}); result.RowsAffected == 0 {
-					return 400, Res("不存在此论坛组", nil)
+					return 404, Res("不存在此论坛组", nil)
 				} else if result.Error != nil {
 					c.Error(result.Error)
 					return 500, Res("删除论坛组失败", nil)

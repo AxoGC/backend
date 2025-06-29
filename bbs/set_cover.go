@@ -11,12 +11,12 @@ import (
 
 func SetCover(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/forums/:slug/cover", p.Preload(
-		&cfg.Config, &p.Option{Login: p.Login, Bind: p.Other, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.Other, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.BBSAdmin},
+			[]utils.RoleID{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				Slug string `uri:"slug" binding:"required,min=3,alphanum"`
-			}) (int, *Resp) {
+				Slug string `uri:"slug"`
+			}) (int, *utils.Resp) {
 
 				if err := cfg.DB.Take(new(utils.Forum), "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 					return 400, Res("不存在这个论坛", nil)

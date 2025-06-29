@@ -16,6 +16,28 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserPreview struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type SrvError string
+
+func (se *SrvError) Error() string {
+	return string(*se)
+}
+
+type BedrockCommand struct {
+	ID      string `json:"id"`
+	Command string `json:"command"`
+	Data    any    `json:"data"`
+}
+
+type BedrockResponse struct {
+	Error SrvError `json:"error"`
+	Data  any      `json:"data"`
+}
+
 var CorsMidWare = cors.New(cors.Config{
 	AllowAllOrigins:  true,
 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -31,7 +53,10 @@ var MimeToExt = map[string]string{
 	"image/webp": ".webp",
 }
 
-var ErrNotSupportedImageType = errors.New("not supported image file type")
+var (
+	ErrNotSupportedImageType = errors.New("not supported image file type")
+	ErrNoSuchServer          = errors.New("no such server")
+)
 
 func GetExtByFileHeader(fh *multipart.FileHeader) (string, error) {
 
@@ -133,3 +158,23 @@ func RegisterHandlers[T any](r *gin.Engine, cfg *T, handlers ...Handler[T]) {
 		r.Handle(handler(cfg))
 	}
 }
+
+/*
+func GetBedrockOnlinePlayers(slug string, bcs map[string][]BedrockCommand, brs map[string]chan BedrockResponse) ([]string, error) {
+
+	if bcs[slug] == nil {
+		return nil, ErrNoSuchServer
+	}
+
+	id := uuid.New().String()
+
+	brs[id] = make(chan BedrockResponse)
+
+	bcs[slug] = append(bcs[slug], BedrockCommand{
+		ID:      id,
+		Command: "list",
+	})
+
+	resp := <-brs[id]
+}
+*/

@@ -6,18 +6,16 @@ import (
 )
 
 const (
-	None      = utils.None
-	Applicant = utils.Applicant
-	Member    = utils.Member
-	Admin     = utils.Admin
-	Owner     = utils.Owner
+	None      = utils.GuildNone
+	Applicant = utils.GuildApplicant
+	Member    = utils.GuildMember
+	Admin     = utils.GuildAdmin
+	Owner     = utils.GuildOwner
 )
 
 type HandlerConfig struct {
 	*p.Config
 	Env *Config
 }
-
-type Resp = utils.Resp
 
 var Res = utils.Res

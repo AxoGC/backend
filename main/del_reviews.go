@@ -22,7 +22,7 @@ func DelReviews(cfg *p.Config) (string, string, gin.HandlerFunc) {
 			} else if err != nil {
 				c.Error(err)
 				return 500, Res("查找评论失败", nil)
-			} else if review.UserID != u.ID && !u.HasAnyRole(utils.Admin, utils.ReviewAdmin) {
+			} else if review.UserID != u.ID && !u.HasAnyRole(utils.RoleAdmin, utils.RoleReviewAdmin) {
 				return 403, Res("你不是这个评论的发送者", nil)
 			}
 

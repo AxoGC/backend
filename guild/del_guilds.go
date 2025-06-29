@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DelGuilds(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/disband", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, Owner),
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login}, nil,
-			func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
+func DelGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/disband", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login}, nil,
+		WithGuildRolesAuth(
+			[]utils.DictID{Owner},
+			func(c *gin.Context, u *utils.User, r *struct{}) (int, *utils.Resp) {
 
 				if err := cfg.DB.Delete(utils.Guild{ID: *u.GuildID}).Error; err != nil {
 					c.Error(err)
@@ -21,5 +21,5 @@ func DelGuilds(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				return 200, Res("公会解散成功", nil)
 			},
 		),
-	}
+	)
 }

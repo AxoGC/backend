@@ -9,14 +9,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func Join(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/join/:slug", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, None),
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login, Bind: p.Uri}, nil,
+func Join(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/join/:slug", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login, Bind: p.URI}, nil,
+		WithGuildRolesAuth(
+			[]utils.DictID{None},
 			func(c *gin.Context, u *utils.User, r *struct {
 				Slug string `uri:"slug"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				var guildId uint
 				if err := cfg.DB.Where(&utils.Guild{Slug: r.Slug}).Pluck("id", &guildId).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -33,5 +33,5 @@ func Join(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				return 200, Res("申请成功", nil)
 			},
 		),
-	}
+	)
 }

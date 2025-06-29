@@ -16,7 +16,7 @@ func GetPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		&cfg.Config, &p.Option{Bind: p.URI}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			ID uint `uri:"id" binding:"required"`
-		}) (int, *Resp) {
+		}) (int, *utils.Resp) {
 
 			var post struct {
 				CreatedAt   time.Time `json:"createdAt"`
@@ -61,7 +61,7 @@ func GetPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 				s.Model(new(utils.User)),
 			).Preload("Forum",
 				s.Model(new(utils.Forum)),
-			).First(&post, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			).Take(&post, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 404, Res("不存在这个帖子", nil)
 			} else if err != nil {
 				c.Error(err)

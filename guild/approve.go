@@ -7,14 +7,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func Approve(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/approve", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, Admin, Owner),
-		p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login, Bind: p.JSON}, nil,
+func Approve(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/approve", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login, Bind: p.JSON}, nil,
+		WithGuildRolesAuth([]utils.DictID{Admin, Owner},
 			func(c *gin.Context, u *utils.User, r *struct {
 				IDs []uint `json:"ids"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				if err, ok := cfg.DB.Transaction(func(tx *gorm.DB) error {
 
@@ -35,12 +34,12 @@ func Approve(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 					}
 
 					return nil
-				}).(*utils.TxResp[Resp]); ok {
+				}).(*utils.TxResp[utils.Resp]); ok {
 					return err.Code, Res(err.Data.Message, nil)
 				}
 
 				return 200, Res("批准申请成功", nil)
 			},
 		),
-	}
+	)
 }

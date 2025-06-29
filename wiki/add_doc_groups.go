@@ -11,15 +11,18 @@ import (
 
 func AddDocGroups(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "POST", "/doc-groups", p.Preload(
-		cfg, &p.Option{Login: p.Login, Bind: p.JSON, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.JSON, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.WikiAdmin},
+			[]utils.RoleID{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				Label string `json:"label" binding:"required"`
+				Label string `json:"label"`
 				Sort  int    `json:"sort"`
 			}) (int, *utils.Resp) {
 
-				if err := cfg.DB.Model(new(utils.DocGroup)).Create(r).Error; errors.Is(err, gorm.ErrDuplicatedKey) {
+				if err := cfg.DB.Model(new(utils.DocGroup)).Create(map[string]any{
+					"label": r.Label,
+					"sort":  r.Sort,
+				}).Error; errors.Is(err, gorm.ErrDuplicatedKey) {
 					return 400, Res("已存在同名文档组", nil)
 				} else if err != nil {
 					c.Error(err)

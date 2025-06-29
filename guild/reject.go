@@ -6,13 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Reject(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/reject", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, Admin, Owner), p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login, Bind: p.JSON}, nil,
+func Reject(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/reject", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login, Bind: p.JSON}, nil,
+		WithGuildRolesAuth(
+			[]utils.DictID{Admin, Owner},
 			func(c *gin.Context, u *utils.User, r *struct {
 				IDs []uint `json:"ids"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
 				if err := cfg.DB.Where(
 					"id IN ? AND guild_id IN ? AND guild_role = ?", r.IDs, u.GuildID, Applicant,
@@ -24,5 +25,5 @@ func Reject(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 				return 200, Res("拒绝申请成功", nil)
 			},
 		),
-	}
+	)
 }

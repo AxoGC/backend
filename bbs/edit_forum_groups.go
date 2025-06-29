@@ -10,17 +10,20 @@ import (
 )
 
 func EditForumGroups(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
-	return "PATCH", "/forum-groups/:id", p.Preload(
+	return "PUT", "/forum-groups/:id", p.Preload(
 		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.BBSAdmin},
+			[]utils.RoleID{utils.Admin, utils.BBSAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				ID    uint   `uri:"id" binding:"required"`
-				Label string `json:"label" binding:"required"`
+				ID    uint   `uri:"id"`
+				Label string `json:"label"`
 				Sort  int    `json:"sort"`
-			}) (int, *Resp) {
+			}) (int, *utils.Resp) {
 
-				if result := cfg.DB.Where(&utils.ForumGroup{ID: r.ID}).Select("label", "sort").Updates(r); errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+				if result := cfg.DB.Model(new(utils.ForumGroup)).Where(r.ID).Updates(map[string]any{
+					"label": r.Label,
+					"sort":  r.Sort,
+				}); errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 					return 409, Res("此标题已被其他论坛组使用", nil)
 				} else if result.RowsAffected == 0 {
 					return 404, Res("不存在此论坛组", nil)

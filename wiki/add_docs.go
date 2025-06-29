@@ -11,24 +11,24 @@ import (
 
 func AddDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
 	return "POST", "/doc-groups/:docGroupId/docs", p.Preload(
-		cfg, &p.Option{Login: p.Login, Bind: p.JSON, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
-			[]utils.Role{utils.Admin, utils.WikiAdmin},
+			[]utils.RoleID{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				Slug       string `json:"slug" binding:"required,min=3,alphanum"`
-				Title      string `json:"title" binding:"required"`
-				Content    string `json:"content" binding:"required"`
-				DocGroupID uint   `uri:"docGroupId" binding:"required"`
+				DocGroupID uint   `uri:"docGroupId"`
+				Slug       string `json:"slug"`
+				Title      string `json:"title"`
+				Content    string `json:"content"`
 				Sort       int    `json:"sort"`
 			}) (int, *utils.Resp) {
 
-				if err := cfg.DB.Create(&utils.Doc{
-					Slug:       r.Slug,
-					Title:      r.Title,
-					Content:    r.Content,
-					DocGroupID: r.DocGroupID,
-					Sort:       r.Sort,
-					UserID:     u.ID,
+				if err := cfg.DB.Model(new(utils.Doc)).Create(map[string]any{
+					"doc_group_id": r.DocGroupID,
+					"slug":         r.Slug,
+					"title":        r.Title,
+					"content":      r.Content,
+					"sort":         r.Sort,
+					"user_id":      u.ID,
 				}).Error; errors.Is(err, gorm.ErrDuplicatedKey) {
 					return 409, Res("已存在相同名称或标识的文档", nil)
 				} else if errors.Is(err, gorm.ErrForeignKeyViolated) {

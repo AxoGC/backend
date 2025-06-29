@@ -7,11 +7,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func Quit(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
-	return "POST", "/quit", []gin.HandlerFunc{
-		CheckRoleMidWare(cfg.Config, Member, Admin), p.Preload(
-			cfg.Config, &p.Option{Permission: p.Login}, nil,
-			func(c *gin.Context, u *utils.User, r *struct{}) (int, *Resp) {
+func Quit(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/quit", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login}, nil,
+		WithGuildRolesAuth(
+			[]utils.DictID{Member, Admin},
+			func(c *gin.Context, u *utils.User, r *struct{}) (int, *utils.Resp) {
 
 				if err, ok := cfg.DB.Transaction(func(tx *gorm.DB) error {
 
@@ -28,12 +29,12 @@ func Quit(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 					}
 
 					return nil
-				}).(*utils.TxResp[Resp]); ok {
+				}).(*utils.TxResp[utils.Resp]); ok {
 					return err.Code, Res(err.Data.Message, nil)
 				}
 
 				return 200, Res("退出公会成功", nil)
 			},
 		),
-	}
+	)
 }

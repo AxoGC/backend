@@ -10,21 +10,4 @@ type HandlerConfig struct {
 	Env *Config
 }
 
-func HasPerm(user *utils.User, album *utils.Album) bool {
-
-	if user.Admin {
-		return true
-	}
-
-	if album.UserID == user.ID {
-		return true
-	}
-
-	if album.GuildID != nil {
-
-	}
-
-	return false
-}
-
 var Res = utils.Res

@@ -9,19 +9,14 @@ func ListGoods(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 	return "GET", "/goods", []gin.HandlerFunc{
 		func(c *gin.Context) {
 
-			var goods []struct {
-				ID    uint   `json:"id"`
-				Label string `json:"label"`
-				Price uint   `json:"price"`
-			}
-			if err := cfg.DB.Model(new(utils.Prop)).Find(&goods, "price IS NOT NULL").Error; err != nil {
-				c.JSON(500, Resp{"获取商品列表失败", nil})
+			var goods []utils.Good
+			if err := cfg.DB.Preload("Prop").Scopes(utils.Paginate(c, nil)).Find(&goods).Error; err != nil {
+				c.JSON(500, Res("获取商品列表失败", nil))
 				c.Error(err)
 				return
 			}
 
-			c.JSON(200, Resp{"", goods})
-
+			c.JSON(200, Res("", goods))
 		},
 	}
 }

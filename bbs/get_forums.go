@@ -16,14 +16,16 @@ func GetForums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		&cfg.Config, &p.Option{Bind: p.URI}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			Slug string `uri:"slug" binding:"required"`
-		}) (int, *Resp) {
+		}) (int, *utils.Resp) {
 
 			var forum struct {
-				ID        uint   `json:"id"`
-				Title     string `json:"title"`
-				SubTitle  string `json:"subTitle"`
-				Profile   string `json:"profile"`
-				PostCount uint   `json:"postCount"`
+				ID        uint         `json:"id"`
+				Title     string       `json:"title"`
+				SubTitle  string       `json:"subTitle"`
+				Profile   string       `json:"profile"`
+				PostCount uint         `json:"postCount"`
+				GameID    utils.GameID `json:"gameId"`
+				Game      utils.Game   `json:"game"`
 				Posts     []struct {
 					ID        uint      `json:"id"`
 					UpdatedAt time.Time `json:"updatedAt"`
@@ -38,7 +40,7 @@ func GetForums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 					ReviewCount uint `json:"reviewCount"`
 				}
 			}
-			if err := cfg.DB.Model(new(utils.Forum)).Preload("Posts",
+			if err := cfg.DB.Model(new(utils.Forum)).Preload("Game").Preload("Posts",
 				s.Model(new(utils.Post)),
 				utils.Paginate(c, nil),
 				s.Preload("User",

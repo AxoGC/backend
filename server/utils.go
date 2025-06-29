@@ -10,6 +10,8 @@ type HandlerConfig struct {
 	*p.Config
 	Env *Config
 	RDB *redis.Client
+	BCs map[string][]BedrockCommand
+	BRs map[string]chan BedrockResponse
 }
 
 var Res = utils.Res

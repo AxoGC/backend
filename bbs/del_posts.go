@@ -11,10 +11,10 @@ import (
 
 func DelPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "DELETE", "/posts/:slug", p.Preload(
-		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"Roles", "Roles.Role"}}, nil,
+		&cfg.Config, &p.Option{Login: p.Login, Bind: p.URI, Preloads: []string{"UserRoles"}}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
-			Slug string `uri:"slug" binding:"required"`
-		}) (int, *Resp) {
+			Slug string `uri:"slug"`
+		}) (int, *utils.Resp) {
 
 			var post utils.Post
 			if err := cfg.DB.Take(&post, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
@@ -22,7 +22,7 @@ func DelPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 			} else if err != nil {
 				c.Error(err)
 				return 500, Res("查找帖子失败", nil)
-			} else if post.UserID != u.ID && false {
+			} else if post.UserID != u.ID && !u.HasAnyRole(utils.Admin, utils.BBSAdmin) {
 				return 403, Res("你没有权限删除该内容", nil)
 			}
 
