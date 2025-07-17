@@ -18,54 +18,47 @@ func GetDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
 			Slug string `uri:"slug" binding:"required"`
 		}) (int, *utils.Resp) {
 
-			var doc struct {
-				ID         uint      `json:"id"`
-				CreatedAt  time.Time `json:"createdAt"`
-				UpdatedAt  time.Time `json:"updatedAt"`
-				Title      string    `json:"title"`
-				Content    string    `json:"content"`
-				DocGroupID uint      `json:"docGroupId"`
-				DocGroup   struct {
-					ID    uint   `json:"id"`
-					Label string `json:"label"`
-				} `json:"docGroup"`
-				UserID uint `json:"userId"`
-				User   struct {
-					ID   uint   `json:"id"`
-					Name string `json:"name"`
-				} `json:"user"`
-				Reviews []struct {
-					ID             uint      `json:"id"`
-					UpdatedAt      time.Time `json:"updatedAt"`
-					Content        string    `json:"content"`
-					ReviewableID   uint      `json:"reviewableId"`
-					ReviewableType string    `json:"reviewableType"`
-					UserID         uint      `json:"userId"`
-					User           struct {
-						ID   uint   `json:"id"`
-						Name string `json:"name"`
-					} `json:"user"`
-				} `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:docs"`
-				ReviewCount uint `json:"reviewCount"`
+			type DocGroup struct {
+				ID    uint   `json:"id"`
+				Label string `json:"label"`
 			}
 
-			if err := cfg.DB.
-				Model(new(utils.Doc)).
-				Preload("DocGroup",
-					s.Model(new(utils.DocGroup)),
-				).
-				Preload("User",
-					s.Model(new(utils.User)),
-				).
-				Preload("Reviews",
-					s.Model(new(utils.Review)),
-					utils.Paginate(c, nil),
-					s.Preload("User",
-						s.Model(new(utils.User)),
-					),
-				).
-				Take(&doc, "slug = ?", r.Slug).
-				Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			type User struct {
+				ID   uint   `json:"id"`
+				Name string `json:"name"`
+			}
+
+			type Review struct {
+				ID             uint      `json:"id"`
+				UpdatedAt      time.Time `json:"updatedAt"`
+				Content        string    `json:"content"`
+				ReviewableID   uint      `json:"reviewableId"`
+				ReviewableType string    `json:"reviewableType"`
+				UserID         uint      `json:"userId"`
+				User           User      `json:"user"`
+			}
+
+			type Doc struct {
+				ID          uint      `json:"id"`
+				CreatedAt   time.Time `json:"createdAt"`
+				UpdatedAt   time.Time `json:"updatedAt"`
+				Title       string    `json:"title"`
+				Slug        string    `json:"slug"`
+				Content     string    `json:"content"`
+				Sort        int       `json:"sort"`
+				DocGroupID  uint      `json:"docGroupId"`
+				DocGroup    DocGroup  `json:"docGroup"`
+				UserID      uint      `json:"userId"`
+				User        User      `json:"user"`
+				Reviews     []Review  `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:docs"`
+				ReviewCount uint      `json:"reviewCount"`
+			}
+
+			var doc Doc
+
+			if err := cfg.DB.Preload("DocGroup").Preload("User").Preload(
+				"Reviews", utils.Paginate(c, nil), s.Preload("User"),
+			).Take(&doc, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 400, Res("不存在此文档", nil)
 			} else if err != nil {
 				c.Error(err)

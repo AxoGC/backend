@@ -9,7 +9,7 @@ var Tables = []any{
 
 	// A组：不依赖其他组的模型
 	// A1组：枚举模型
-	new(Role), new(Prop), new(Game),
+	new(Role), new(Prop), new(Game), new(Gender), new(GuildStatus),
 	// A2组：不依赖的模型
 	new(User), new(Guild), new(DocGroup), new(ForumGroup),
 	// A3组：只依赖枚举的模型
@@ -73,6 +73,34 @@ const (
 	ARKSurvivalEvolved GameID = "ark_survival_evolved"
 )
 
+type GenderID string
+
+type Gender struct {
+	ID    GenderID `gorm:"type:VARCHAR(32);primarykey;comment:ID"`
+	Label string   `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
+}
+
+const (
+	UnknownGender GenderID = "unknown_gender"
+	Male          GenderID = "male"
+	Female        GenderID = "female"
+	Femboy        GenderID = "femboy"
+)
+
+type GuildStatusID string
+
+type GuildStatus struct {
+	ID    GuildStatusID `gorm:"type:VARCHAR(32);primarykey;comment:ID"`
+	Label string        `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
+}
+
+const (
+	GuildBlocked   GuildStatusID = "guild_blocked"
+	GuildApplicant GuildStatusID = "guild_applicant"
+	GuildMember    GuildStatusID = "guild_member"
+	GuildAdmin     GuildStatusID = "guild_admin"
+)
+
 type User struct {
 	ID             uint           `gorm:"comment:ID"`
 	CreatedAt      time.Time      `gorm:"not null;comment:创建时间"`
@@ -80,7 +108,8 @@ type User struct {
 	Name           string         `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
 	Exp            uint           `gorm:"not null;comment:经验值"`
 	Password       string         `gorm:"type:CHAR(60);not null;comment:密码"`
-	Gender         *bool          `gorm:"comment:性别"`
+	GenderID       GenderID       `gorm:"type:VARCHAR(32);not null;index;comment:性别"`
+	Gender         Gender         `gorm:"constraint:OnDelete:RESTRICT"`
 	Profile        string         `gorm:"type:VARCHAR(255);not null;comment:个人介绍"`
 	Birthday       *time.Time     `gorm:"comment:生日"`
 	Location       string         `gorm:"type:VARCHAR(128);not null;comment:地址"`
@@ -116,6 +145,7 @@ type Guild struct {
 type DocGroup struct {
 	ID    uint   `gorm:"comment:ID"`
 	Label string `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
+	Slug  string `gorm:"type:VARCHAR(32);not null;unique;comment:标识"`
 	Sort  int    `gorm:"not null;comment:排序"`
 	Docs  []Doc
 }
@@ -123,6 +153,7 @@ type DocGroup struct {
 type ForumGroup struct {
 	ID     uint   `gorm:"comment:ID"`
 	Label  string `gorm:"type:VARCHAR(32);not null;unique;comment:标题"`
+	Slug   string `gorm:"type:VARCHAR(32);not null;unique;comment:标识"`
 	Sort   int    `gorm:"not null;comment:排序"`
 	Forums []Forum
 }
@@ -153,22 +184,22 @@ type Server struct {
 }
 
 type UserGuild struct {
-	ID        uint      `gorm:"comment:ID"`
-	CreatedAt time.Time `gorm:"not null;comment:创建时间"`
-	UserID    uint      `gorm:"not null;unique;comment:用户"`
-	User      User      `gorm:"constraint:OnDelete:CASCADE"`
-	Status    *bool     `gorm:"not null;comment:状态"`
-	Admin     bool      `gorm:"not null;comment:管理员"`
-	GuildID   uint      `gorm:"not null;index;comment:公会ID"`
-	Guild     Guild     `gorm:"constraint:OnDelete:CASCADE"`
+	ID            uint          `gorm:"comment:ID"`
+	CreatedAt     time.Time     `gorm:"not null;comment:创建时间"`
+	UserID        uint          `gorm:"not null;unique;comment:用户"`
+	User          User          `gorm:"constraint:OnDelete:CASCADE"`
+	GuildStatusID GuildStatusID `gorm:"type:VARCHAR(32);not null;index;comment:状态"`
+	GuildStatus   GuildStatus   `gorm:"constraint:OnDelete:RESTRICT"`
+	GuildID       uint          `gorm:"not null;index;comment:公会ID"`
+	Guild         Guild         `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type UserFollow struct {
 	ID          uint      `gorm:"comment:ID"`
 	CreatedAt   time.Time `gorm:"not null;comment:创建时间"`
 	FollowerID  uint      `gorm:"not null;uniqueIndex:idx_follower_following;comment:关注者"`
-	FollowingID uint      `gorm:"not null;uniqueIndex:idx_follower_following;comment:被关注者"`
 	Follower    User      `gorm:"foreignKey:FollowerID;constraint:OnDelete:CASCADE"`
+	FollowingID uint      `gorm:"not null;uniqueIndex:idx_follower_following;comment:被关注者"`
 	Following   User      `gorm:"foreignKey:FollowingID;constraint:OnDelete:CASCADE"`
 }
 
@@ -221,6 +252,7 @@ type Album struct {
 	Protected   bool      `gorm:"not null;comment:上传保护"`
 	ImageCount  uint      `gorm:"not null;comment:图片数量"`
 	ReviewCount uint      `gorm:"not null;comment:评论数量"`
+	Images      []Image
 }
 
 type File struct {

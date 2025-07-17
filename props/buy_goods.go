@@ -9,13 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterShops(r *gin.Engine, cfg *p.Config) {
-
-	r.POST("/goods/:id/buy", p.Preload(
-		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
+func BuyGoods(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
+	return "POST", "/goods/:id/buy", p.Preload(
+		cfg.Config, &p.Option{Login: p.Login, Bind: p.URI | p.JSON}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
-			ID    uint `uri:"id" binding:"required"`
-			Count uint `json:"count" binding:"required"`
+			ID    uint `uri:"id"`
+			Times uint `json:"times"`
 		}) (int, *utils.Resp) {
 
 			var goods []utils.Good
@@ -40,6 +39,8 @@ func RegisterShops(r *gin.Engine, cfg *p.Config) {
 				c.JSON(err.Code, Resp{err.Message, nil})
 				return
 			}
+
+			return 200, Res("商品购买成功", nil)
 		},
-	))
+	)
 }

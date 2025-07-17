@@ -20,7 +20,7 @@ type PlayerStat struct {
 
 func GetMCJEPlayerStats(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) {
 	return "GET", "/:slug/stats/:player", []gin.HandlerFunc{
-		p.Preload(cfg.Config, &p.Option{Bind: p.Uri}, nil, func(c *gin.Context, u *utils.User, r *struct {
+		p.Preload(cfg.Config, &p.Option{Bind: p.URI}, nil, func(c *gin.Context, u *utils.User, r *struct {
 			Slug   string `uri:"slug"`
 			Player string `uri:"player"`
 		}) (int, *utils.Resp) {
@@ -31,7 +31,7 @@ func GetMCJEPlayerStats(cfg *HandlerConfig) (string, string, []gin.HandlerFunc) 
 			} else if err != nil {
 				c.Error(err)
 				return 500, Res("查找服务器失败", nil)
-			} else if server.Game != "mcje" {
+			} else if server.GameID != "mcje" {
 				return 400, Res("这个服务器不是Minecraft Java版", nil)
 			}
 

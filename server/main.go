@@ -28,7 +28,7 @@ func main() {
 		Env: &config,
 		RDB: utils.InitRedis(&config.Redis),
 		BCs: make(map[string][]BedrockCommand),
-		BRs: make(map[string]map[string]chan BedrockResponse),
+		BRs: make(map[string]chan BedrockResponse),
 	}).Run(":" + config.Port); err != nil {
 		log.Fatalf("Failed to start server: %v\n", err)
 	}

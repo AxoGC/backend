@@ -41,7 +41,10 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		AddPosts,
 		EditPosts,
 		DelPosts,
+		GetRecommends,
 	)
+
+	r.GET("/routes", utils.GetRoutes(r))
 
 	return r
 }

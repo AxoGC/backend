@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/axogc/backend/utils"
+	"github.com/samber/lo"
 )
 
 var TestLogs = []utils.Log{
@@ -13,7 +14,7 @@ var TestLogs = []utils.Log{
 		Path:      "/api/users/login",
 		Method:    "POST",
 		Status:    200,
-		UserID:    uintPtr(2),
+		UserID:    lo.ToPtr(uint(1)),
 		Message:   "用户登录成功",
 	},
 	{
@@ -22,25 +23,7 @@ var TestLogs = []utils.Log{
 		Path:      "/api/docs/create",
 		Method:    "POST",
 		Status:    201,
-		UserID:    uintPtr(2),
+		UserID:    lo.ToPtr(uint(1)),
 		Message:   "创建文档成功",
-	},
-	{
-		ID:        3,
-		CreatedAt: time.Now().AddDate(0, 0, -1),
-		Path:      "/api/upload",
-		Method:    "POST",
-		Status:    413,
-		UserID:    uintPtr(3),
-		Message:   "文件大小超出限制",
-	},
-	{
-		ID:        4,
-		CreatedAt: time.Now().AddDate(0, 0, -2),
-		Path:      "/api/users/register",
-		Method:    "POST",
-		Status:    400,
-		UserID:    nil,
-		Message:   "邮箱格式不正确",
 	},
 }

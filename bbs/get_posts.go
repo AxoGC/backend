@@ -15,10 +15,33 @@ func GetPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "GET", "/posts/:slug", p.Preload(
 		&cfg.Config, &p.Option{Bind: p.URI}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
-			ID uint `uri:"id" binding:"required"`
+			Slug string `uri:"slug"`
 		}) (int, *utils.Resp) {
 
-			var post struct {
+			type User struct {
+				ID   uint   `json:"id"`
+				Name string `json:"name"`
+			}
+
+			type Forum struct {
+				ID    uint   `json:"id"`
+				Title string `json:"title"`
+			}
+
+			type Review struct {
+				ID             uint      `json:"id"`
+				UpdatedAt      time.Time `json:"updatedAt"`
+				Content        string    `json:"content"`
+				Attitude       *bool     `json:"attitude"`
+				UserID         uint      `json:"userId"`
+				ReviewableID   uint      `json:"reviewableId"`
+				ReviewableType string    `json:"reviewableType"`
+				User           User      `json:"user"`
+				ReviewCount    uint      `json:"reviewCount"`
+			}
+
+			type Post struct {
+				ID          uint      `json:"id"`
 				CreatedAt   time.Time `json:"createdAt"`
 				UpdatedAt   time.Time `json:"updatedAt"`
 				Pinned      bool      `json:"pinned"`
@@ -28,40 +51,16 @@ func GetPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 				Markdown    bool      `json:"markdown"`
 				UserID      uint      `json:"userId"`
 				ReviewCount uint      `json:"reviewCount"`
-				User        struct {
-					ID   uint   `json:"id"`
-					Name string `json:"name"`
-				} `json:"user"`
-				Forum struct {
-					ID    uint   `json:"id"`
-					Title string `json:"title"`
-				} `json:"forum"`
-				Reviews []struct {
-					ID             uint      `json:"id"`
-					UpdatedAt      time.Time `json:"updatedAt"`
-					Content        string    `json:"content"`
-					Attitude       *bool     `json:"attitude"`
-					UserID         uint      `json:"userId"`
-					ReviewableID   uint      `json:"reviewableId"`
-					ReviewableType string    `json:"reviewableType"`
-					User           struct {
-						ID   uint   `json:"id"`
-						Name string `json:"name"`
-					} `json:"user"`
-					ReviewCount uint `json:"reviewCount"`
-				} `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:posts"`
+				User        User      `json:"user"`
+				Forum       Forum     `json:"forum"`
+				Reviews     []Review  `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:posts"`
 			}
 
-			if err := cfg.DB.Model(new(utils.Post)).Preload("Reviews",
-				s.Model(new(utils.Review)),
-				s.Preload("User",
-					s.Model(new(utils.User)),
-				),
-			).Preload("User",
-				s.Model(new(utils.User)),
-			).Preload("Forum",
-				s.Model(new(utils.Forum)),
-			).Take(&post, r.ID).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+			var post Post
+
+			if err := cfg.DB.Preload(
+				"Reviews", s.Preload("User"),
+			).Preload("User").Preload("Forum").Take(&post, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 404, Res("不存在这个帖子", nil)
 			} else if err != nil {
 				c.Error(err)

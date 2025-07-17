@@ -24,6 +24,8 @@ func main() {
 		TestRoles,
 		TestProps,
 		TestGames,
+		TestGenders,
+		TestGuildStatus,
 
 		TestUsers,
 		TestGuilds,
@@ -34,7 +36,7 @@ func main() {
 		TestServers,
 
 		TestUserGuilds,
-		TestUserFollows,
+		//TestUserFollows,
 		TestDonations,
 		TestUserRoles,
 		TestDocs,

@@ -7,21 +7,21 @@ import (
 )
 
 func ListAlbums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
-	return "POST", "/albums", p.Preload(
+	return "GET", "/albums", p.Preload(
 		cfg.Config, &p.Option{Bind: p.Query}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 		}) (int, *utils.Resp) {
 
-			var albums []struct {
-				User struct {
-					ID   uint   `json:"id"`
-					Name string `json:"name"`
-				} `json:"user"`
+			type Album struct {
+				ID         uint   `json:"id"`
+				Label      string `json:"label"`
+				Slug       string `json:"slug"`
+				ImageCount uint   `json:"imageCount"`
 			}
+
+			var albums []Album
 			if err := cfg.DB.
 				Model(new(utils.Album)).
-				Preload("User").
-				Where("private = ?", false).
 				Scopes(utils.Paginate(c, nil)).
 				Find(&albums).
 				Error; err != nil {

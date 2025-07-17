@@ -28,6 +28,7 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 	utils.RegisterHandlers(r, cfg,
 		ListDocGroups,
 		AddDocGroups,
+		GetDocGroups,
 		EditDocGroups,
 		DelDocGroups,
 		GetDocs,
@@ -35,6 +36,8 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		EditDocs,
 		DelDocs,
 	)
+
+	r.GET("routes", utils.GetRoutes(r))
 
 	return r
 }

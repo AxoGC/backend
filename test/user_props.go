@@ -18,14 +18,14 @@ var TestUserProps = []utils.UserProp{
 		ID:        2,
 		UpdatedAt: time.Now().AddDate(0, 0, -5),
 		PropID:    utils.BlindBox,
-		UserID:    2, // 史蒂夫
+		UserID:    1, // 史蒂夫
 		Count:     3,
 	},
 	{
 		ID:        3,
 		UpdatedAt: time.Now().AddDate(0, 0, -3),
 		PropID:    utils.BlindBox,
-		UserID:    3, // 艾莉克斯
+		UserID:    1, // 艾莉克斯
 		Count:     5,
 	},
 }

@@ -2,91 +2,82 @@ package main
 
 import "github.com/axogc/backend/utils"
 
-/*
-var Forums = []utils.ForumGroup{
-	{ID: 1, Label: "闲聊分区", Forums: []utils.Forum{
-		{ID: 1, Slug: "chat", Title: "聊天室", SubTitle: "", Profile: "", Posts: []utils.Post{}},
-	}},
-	{ID: 2, Label: "游戏交流分区", Forums: []utils.Forum{
-		{ID: 2, Slug: "minecraft-bedrock", Title: "我的世界基岩版", SubTitle: "", Profile: ""},
-		{ID: 3, Slug: "minecraft-java", Title: "我的世界Java版", SubTitle: "", Profile: ""},
-		{ID: 4, Slug: "dont-starve", Title: "饥荒联机版", SubTitle: "", Profile: ""},
-		{ID: 5, Slug: "terraria", Title: "泰拉瑞亚", SubTitle: "", Profile: ""},
-		{ID: 6, Slug: "stardew-valley", Title: "星露谷物语", SubTitle: "", Profile: ""},
-		{ID: 7, Slug: "sky", Title: "", SubTitle: "光遇", Profile: ""},
-	}},
-	{ID: 3, Label: "反馈分区", Forums: []utils.Forum{
-		{ID: 8, Slug: "feedbacks", Title: "BUG或意见反馈", SubTitle: "", Profile: ""},
-		{ID: 9, Slug: "reports", Title: "玩家举报", SubTitle: "", Profile: ""},
-	}},
-}
-*/
-
 var TestForums = []utils.Forum{
 	{
 		ID:           1,
-		ForumGroupID: 1, // 游戏讨论
-		Slug:         "minecraft-general",
-		Title:        "我的世界综合讨论",
-		SubTitle:     "Java版&基岩版通用讨论区",
-		Profile:      "讨论我的世界游戏相关的所有内容，包括游戏技巧、建筑展示、MOD推荐等",
-		PostCount:    156,
-		Sort:         1,
-		ServerID:     uintPtr(1), // 关联生存服务器
+		Slug:         "chat",
+		Title:        "聊天室", 
+		SubTitle:     "一起来唠嗑∠( ᐛ 」∠)＿",
+		Profile:      "这里是大家自由聊天的地方，无论是日常闲聊、分享心情，还是讨论热门话题，都欢迎大家参与。让我们在这里建立友谊，分享快乐！",
+		ForumGroupID: 1,
+		PostCount:    1,
 	},
 	{
 		ID:           2,
-		ForumGroupID: 1,
-		Slug:         "terraria-discussion",
-		Title:        "泰拉瑞亚讨论区",
-		SubTitle:     "2D沙盒冒险游戏",
-		Profile:      "泰拉瑞亚游戏攻略、装备制作、Boss战技巧等内容讨论",
-		PostCount:    89,
-		Sort:         2,
-		ServerID:     uintPtr(4), // 关联泰拉瑞亚服务器
+		Slug:         "minecraft-bedrock",
+		Title:        "我的世界基岩版", 
+		SubTitle:     "为什么基岩版叫基岩版？",
+		Profile:      "专门讨论我的世界基岩版（Minecraft Bedrock Edition）的版块。在这里可以分享建筑作品、交流游戏技巧、寻找联机伙伴，一起探索无限可能的方块世界！",
+		ForumGroupID: 2,
 	},
 	{
 		ID:           3,
-		ForumGroupID: 2, // 技术交流
-		Slug:         "redstone-tech",
-		Title:        "红石技术交流",
-		SubTitle:     "电路设计与自动化装置",
-		Profile:      "分享红石电路设计、自动化装置制作教程和技术讨论",
-		PostCount:    67,
-		Sort:         1,
-		ServerID:     nil,
+		Slug:         "minecraft-java",
+		Title:        "我的世界Java版", 
+		SubTitle:     "要致富，先撸树",
+		Profile:      "我的世界Java版玩家的聚集地！讨论MOD推荐、红石科技、建筑设计、服务器推荐等。无论你是萌新还是老MC，这里都有你需要的攻略和伙伴。",
+		ForumGroupID: 2,
+		ServerID:     uintPtr(1),
+		PostCount:    2,
 	},
 	{
 		ID:           4,
-		ForumGroupID: 3, // 作品展示
-		Slug:         "building-showcase",
-		Title:        "建筑作品展示",
-		SubTitle:     "展示你的创意建筑",
-		Profile:      "展示各种游戏中的精美建筑作品，分享建筑经验和技巧",
-		PostCount:    203,
-		Sort:         1,
-		ServerID:     nil,
+		Slug:         "dont-starve",
+		Title:        "饥荒联机版", 
+		SubTitle:     "浆果 好赤",
+		Profile:      "饥荒联机版（Don't Starve Together）交流区域。分享生存技巧、角色攻略、BOSS打法，一起在这个充满挑战的世界中互助求生！",
+		ForumGroupID: 2,
 	},
 	{
 		ID:           5,
-		ForumGroupID: 4, // 社区事务
-		Slug:         "community-announcements",
-		Title:        "社区公告",
-		SubTitle:     "重要通知与公告",
-		Profile:      "发布社区重要通知、活动公告、规则更新等信息",
-		PostCount:    25,
-		Sort:         1,
-		ServerID:     nil,
+		Slug:         "terraria",
+		Title:        "泰拉瑞亚", 
+		SubTitle:     "去吧，泰拉瑞亚战士！",
+		Profile:      "泰拉瑞亚玩家的冒险基地！讨论装备合成、BOSS攻略、建筑设计、MOD推荐。在这个2D沙盒世界中，每个人都是勇敢的探险家！",
+		ForumGroupID: 2,
+		PostCount:    1,
+		ServerID:     uintPtr(4),
 	},
 	{
 		ID:           6,
-		ForumGroupID: 5, // 服务器相关
-		Slug:         "server-support",
-		Title:        "服务器技术支持",
-		SubTitle:     "服务器问题求助",
-		Profile:      "服务器连接问题、游戏BUG反馈、技术支持等",
-		PostCount:    78,
-		Sort:         1,
-		ServerID:     nil,
+		Slug:         "stardew-valley",
+		Title:        "星露谷物语", 
+		SubTitle:     "小时候玩这个被紫色飞天苦茶追了",
+		Profile:      "星露谷物语温馨交流区。分享农场设计、种植攻略、村民好感度提升、节日活动等。在这个宁静的乡村里，享受慢节奏的田园生活吧！",
+		ForumGroupID: 2,
+	},
+	{
+		ID:           7,
+		Slug:         "sky",
+		Title:        "光·遇",
+		SubTitle:     "因光而遇的旅行…", 
+		Profile:      "光·遇（Sky: Children of the Light）玩家交流天地。分享每日任务攻略、先祖位置、服装收集心得，一起在这个充满温暖的云端世界中传递光明！",
+		ForumGroupID: 2,
+	},
+	{
+		ID:           8,
+		Slug:         "feedbacks",
+		Title:        "BUG或意见反馈", 
+		SubTitle:     "帮助我们变得更好 (๑•̀ㅂ•́)و✧",
+		Profile:      "发现网站BUG或有改进建议？请在这里告诉我们！您的每一个反馈都是我们前进的动力，让我们一起打造更好的社区环境。",
+		ForumGroupID: 3,
+	},
+	{
+		ID:           9,
+		Slug:         "reports",
+		Title:        "玩家举报", 
+		SubTitle:     "维护社区秩序，人人有责",
+		Profile:      "如果您遇到违规行为、恶意用户或不当内容，请在此举报。我们会认真处理每一个举报，共同维护一个健康、友好的社区环境。",
+		ForumGroupID: 3,
 	},
 }

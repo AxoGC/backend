@@ -18,6 +18,9 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		Env: config,
 	}
 
+	r.Use(utils.CorsMidWare)
+	r.Use(utils.LogMidWare(db))
+
 	utils.RegisterHandlers(r, &cfg,
 		AddAlbums,
 		AddImages,
@@ -29,7 +32,12 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		GetImages,
 		ListAlbums,
 		SetCover,
+		GetGalleryStats,
+		GetGalleryCarousel,
+		GetGalleryRank,
 	)
+
+	r.GET("/routes", utils.GetRoutes(r))
 
 	return r
 }

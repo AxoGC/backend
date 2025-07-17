@@ -11,47 +11,62 @@ import (
 )
 
 func GetAlbums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
-	return "GET", "/albums", p.Preload(
+	return "GET", "/albums/:slug", p.Preload(
 		cfg.Config, &p.Option{Bind: p.URI | p.Query, Login: p.Auto}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
-			Slug string `uri:"slug" binding:"required"`
+			Slug string `uri:"slug"`
 			All  bool   `form:"all"`
 		}) (int, *utils.Resp) {
 
-			var album struct {
-				User struct {
-					ID   uint   `json:"id"`
-					Name string `json:"name"`
-				} `json:"user"`
-				Images []struct {
-					ID       uint   `json:"id"`
-					Filename string `json:"filename"`
-					Label    string `json:"label"`
-					Likes    uint   `json:"likes"`
-					AlbumID  uint   `json:"albumId"`
-				} `json:"images"`
-				Reviews []struct {
-					ID             uint   `json:"id"`
-					Content        string `json:"content"`
-					UserID         uint   `json:"userId"`
-					ReviewableID   uint   `json:"reviewableId"`
-					ReviewableType string `json:"reviewableType"`
-					User           struct {
-						ID   uint   `json:"id"`
-						Name string `json:"name"`
-					}
-				} `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:albums"`
+			type User struct {
+				ID   uint   `json:"id"`
+				Name string `json:"name"`
 			}
 
-			query := cfg.DB.Model(new(utils.Album)).Preload("User").Preload("Images",
-				utils.Paginate(c, &utils.PaginateConfig{KeyPrefix: "images"}),
+			type Image struct {
+				ID       uint   `json:"id"`
+				Filename string `json:"filename"`
+				Label    string `json:"label"`
+				Likes    uint   `json:"likes"`
+				AlbumID  uint   `json:"albumId"`
+			}
+
+			type Review struct {
+				ID             uint   `json:"id"`
+				Content        string `json:"content"`
+				UserID         uint   `json:"userId"`
+				ReviewableID   uint   `json:"reviewableId"`
+				ReviewableType string `json:"reviewableType"`
+				User           User   `json:"user"`
+			}
+
+			type Album struct {
+				ID          uint     `json:"id"`
+				Label       string   `json:"label"`
+				Slug        string   `json:"slug"`
+				Profile     string   `json:"profile"`
+				UserID      uint     `json:"userId"`
+				User        User     `json:"user"`
+				ReviewCount uint     `json:"reviewCount"`
+				Images      []Image  `json:"images"`
+				Reviews     []Review `json:"reviews" gorm:"polymorphic:Reviewable;polymorphicValue:albums"`
+			}
+
+			var album Album
+
+			query := cfg.DB.Model(new(utils.Album)).Preload("User",
+				s.Model(new(utils.User)),
+			).Preload("Images",
+				s.Model(new(utils.Image)),
+				utils.Paginate(c, nil),
 			).Preload("Reviews",
-				utils.Paginate(c, &utils.PaginateConfig{KeyPrefix: "users"}),
+				s.Model(new(utils.Review)),
+				utils.Paginate(c, &utils.PaginateConfig{KeyPrefix: "review"}),
 				s.Preload("User"),
 			)
 
 			if !r.All || !(u != nil && u.HasAnyRole(utils.Admin, utils.GalleryAdmin)) {
-				query = query.Where("private = ?", false)
+				query = query.Where("hide = ?", false)
 			}
 
 			if err := query.First(&album, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {

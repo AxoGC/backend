@@ -11,14 +11,23 @@ func GetCarousels(cfg *p.Config) (string, string, gin.HandlerFunc) {
 		cfg, nil, nil,
 		func(c *gin.Context, u *utils.User, r *struct{}) (int, *utils.Resp) {
 
-			var carousels []struct {
+			type Album struct {
+				ID   uint   `json:"id"`
+				Slug string `json:"slug"`
+			}
+
+			type Image struct {
 				ID       uint   `json:"id"`
 				Filename string `json:"filename"`
 				Label    string `json:"label"`
+				AlbumID  uint   `json:"albumId"`
+				Album    Album  `json:"album"`
 			}
 
-			if err := cfg.DB.Model(new(utils.Image)).Joins("Album").Find(
-				&carousels, "albums.path = ?", "carousel",
+			var carousels []Image
+
+			if err := cfg.DB.Joins("Album").Find(
+				&carousels, "Album.slug = ?", "carousels",
 			).Error; err != nil {
 				return 500, Res("获取轮播图相册失败", nil)
 			}

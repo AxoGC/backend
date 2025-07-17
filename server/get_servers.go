@@ -26,7 +26,7 @@ func GetServers(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 
 			var status bool
 
-			online, err := srv.GetOnlineCount(cfg.Env.ServerHost)
+			online, err := utils.GetOnlineCount(srv.GameID, srv.Port, cfg.Env.ServerHost)
 			if err != nil && err != utils.ErrNotSupportedGame {
 				c.Error(err)
 			}

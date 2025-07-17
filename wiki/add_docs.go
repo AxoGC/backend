@@ -10,29 +10,35 @@ import (
 )
 
 func AddDocs(cfg *p.Config) (string, string, gin.HandlerFunc) {
-	return "POST", "/doc-groups/:docGroupId/docs", p.Preload(
+	return "POST", "/doc-groups/:slug/docs", p.Preload(
 		cfg, &p.Option{Login: p.Login, Bind: p.URI | p.JSON, Preloads: []string{"UserRoles"}}, nil,
 		utils.WithRolesAuth(
 			[]utils.RoleID{utils.Admin, utils.WikiAdmin},
 			func(c *gin.Context, u *utils.User, r *struct {
-				DocGroupID uint   `uri:"docGroupId"`
-				Slug       string `json:"slug"`
-				Title      string `json:"title"`
-				Content    string `json:"content"`
-				Sort       int    `json:"sort"`
+				DocGroupSlug string `uri:"slug"`
+				Slug         string `json:"slug"`
+				Title        string `json:"title"`
+				Content      string `json:"content"`
+				Sort         int    `json:"sort"`
 			}) (int, *utils.Resp) {
 
-				if err := cfg.DB.Model(new(utils.Doc)).Create(map[string]any{
-					"doc_group_id": r.DocGroupID,
-					"slug":         r.Slug,
-					"title":        r.Title,
-					"content":      r.Content,
-					"sort":         r.Sort,
-					"user_id":      u.ID,
+				var docGroup utils.DocGroup
+				if err := cfg.DB.Take(&docGroup, "slug = ?", r.DocGroupSlug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+					return 404, Res("不存在对应的文档组", nil)
+				} else if err != nil {
+					c.Error(err)
+					return 500, Res("查找文档组失败", nil)
+				}
+
+				if err := cfg.DB.Model(new(utils.Doc)).Create(&utils.Doc{
+					DocGroupID: docGroup.ID,
+					Slug:       r.Slug,
+					Title:      r.Title,
+					Content:    r.Content,
+					Sort:       r.Sort,
+					UserID:     u.ID,
 				}).Error; errors.Is(err, gorm.ErrDuplicatedKey) {
 					return 409, Res("已存在相同名称或标识的文档", nil)
-				} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
-					return 404, Res("不存在对应的文档组", nil)
 				} else if err != nil {
 					c.Error(err)
 					return 500, Res("创建文档失败", nil)

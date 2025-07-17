@@ -18,34 +18,44 @@ func GetForums(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 			Slug string `uri:"slug" binding:"required"`
 		}) (int, *utils.Resp) {
 
-			var forum struct {
-				ID        uint         `json:"id"`
-				Title     string       `json:"title"`
-				SubTitle  string       `json:"subTitle"`
-				Profile   string       `json:"profile"`
-				PostCount uint         `json:"postCount"`
-				GameID    utils.GameID `json:"gameId"`
-				Game      utils.Game   `json:"game"`
-				Posts     []struct {
-					ID        uint      `json:"id"`
-					UpdatedAt time.Time `json:"updatedAt"`
-					Pinned    bool      `json:"pinned"`
-					Title     string    `json:"title"`
-					ForumID   uint      `json:"forumId"`
-					UserID    uint      `json:"userId"`
-					User      struct {
-						ID   uint   `json:"id"`
-						Name string `json:"name"`
-					} `json:"user"`
-					ReviewCount uint `json:"reviewCount"`
-				}
+			type User struct {
+				ID   uint   `json:"id"`
+				Name string `json:"name"`
 			}
-			if err := cfg.DB.Model(new(utils.Forum)).Preload("Game").Preload("Posts",
-				s.Model(new(utils.Post)),
-				utils.Paginate(c, nil),
-				s.Preload("User",
-					s.Model(new(utils.User)),
-				),
+
+			type Post struct {
+				ID          uint      `json:"id"`
+				UpdatedAt   time.Time `json:"updatedAt"`
+				Pinned      bool      `json:"pinned"`
+				Title       string    `json:"title"`
+				Slug        string    `json:"slug"`
+				ForumID     uint      `json:"forumId"`
+				UserID      uint      `json:"userId"`
+				User        User      `json:"user"`
+				ReviewCount uint      `json:"reviewCount"`
+			}
+
+			type Server struct {
+				ID    uint   `json:"id"`
+				Slug  string `json:"slug"`
+				Label string `json:"label"`
+			}
+
+			type Forum struct {
+				ID        uint    `json:"id"`
+				Slug      string  `json:"slug"`
+				Title     string  `json:"title"`
+				SubTitle  string  `json:"subTitle"`
+				Profile   string  `json:"profile"`
+				PostCount uint    `json:"postCount"`
+				ServerID  *uint   `json:"serverId"`
+				Server    *Server `json:"server"`
+				Posts     []Post  `json:"posts"`
+			}
+
+			var forum Forum
+			if err := cfg.DB.Preload("Server").Preload(
+				"Posts", utils.Paginate(c, nil), s.Preload("User"),
 			).Take(&forum, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 404, Res("不存在此论坛", nil)
 			} else if err != nil {
