@@ -1,12 +1,6 @@
 package main
 
-import (
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
-
+/*
 func Kick(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/kick", p.Preload(
 		cfg.Config, &p.Option{}, nil,
@@ -44,3 +38,4 @@ func Kick(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		),
 	)
 }
+*/

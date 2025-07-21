@@ -20,6 +20,7 @@ func ListForumGroups(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		type ForumGroup struct {
 			ID     uint    `json:"id"`
 			Label  string  `json:"label"`
+			Slug   string  `json:"slug"`
 			Sort   int     `json:"sort"`
 			Forums []Forum `json:"forums"`
 		}

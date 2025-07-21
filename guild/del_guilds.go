@@ -1,10 +1,6 @@
 package main
 
-import (
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-)
+/*
 
 func DelGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/disband", p.Preload(
@@ -23,3 +19,5 @@ func DelGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		),
 	)
 }
+
+*/

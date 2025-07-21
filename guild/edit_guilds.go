@@ -1,13 +1,6 @@
 package main
 
-import (
-	"errors"
-
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
+/*
 
 func EditGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "PATCH", "/edit", p.Preload(
@@ -31,3 +24,4 @@ func EditGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 			}),
 	)
 }
+*/

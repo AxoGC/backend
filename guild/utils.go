@@ -6,11 +6,9 @@ import (
 )
 
 const (
-	None      = utils.GuildNone
 	Applicant = utils.GuildApplicant
 	Member    = utils.GuildMember
 	Admin     = utils.GuildAdmin
-	Owner     = utils.GuildOwner
 )
 
 type HandlerConfig struct {

@@ -29,17 +29,16 @@ func main() {
 
 		TestUsers,
 		TestGuilds,
-		TestDocGroups,
 		TestForumGroups,
 
 		TestGoods,
 		TestServers,
 
+		TestDocGroups,
 		TestUserGuilds,
 		//TestUserFollows,
 		TestDonations,
 		TestUserRoles,
-		TestDocs,
 		TestAlbums,
 		TestFiles,
 		TestReviews,
@@ -47,6 +46,7 @@ func main() {
 		TestLogs,
 		TestDeepSeekMessages,
 
+		TestDocs,
 		TestOnlines,
 		TestImages,
 		TestForums,

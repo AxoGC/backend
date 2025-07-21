@@ -2,7 +2,7 @@ package main
 
 import "github.com/axogc/backend/utils"
 
-var TestGuildStatus = []utils.GuildStatus{
+var TestGuildStatus = []utils.UserGuildStatus{
 	{ID: utils.GuildBlocked, Label: "拉黑"},
 	{ID: utils.GuildApplicant, Label: "申请中"},
 	{ID: utils.GuildMember, Label: "公会成员"},

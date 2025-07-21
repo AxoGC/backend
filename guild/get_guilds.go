@@ -11,27 +11,45 @@ import (
 )
 
 func GetGuilds(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
-	return "GET", "/:path", p.Preload(
+	return "GET", "/guilds/:slug", p.Preload(
 		cfg.Config, &p.Option{Bind: p.URI}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			Slug string `uri:"slug"`
 		}) (int, *utils.Resp) {
 
-			var guild struct {
-				CreatedAt time.Time `json:"createdAt"`
-				Name      string    `json:"name"`
-				Path      string    `json:"path"`
-				Count     uint      `json:"count"`
-				Profile   string    `json:"profile"`
-				Money     uint      `json:"money"`
-				Users     []struct {
-					ID        uint   `json:"id"`
-					Name      string `json:"name"`
-					GuildID   *uint  `json:"guildId"`
-					GuildRole uint   `json:"guildRole"`
-				} `json:"users"`
+			type User struct {
+				ID   uint   `json:"id"`
+				Name string `json:"name"`
 			}
-			if err := cfg.DB.Where(&utils.Guild{Slug: r.Slug}).Take(&guild).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+
+			type UserGuild struct {
+				ID                uint                    `json:"id"`
+				UserID            uint                    `json:"userId"`
+				User              User                    `json:"user"`
+				UserGuildStatusID utils.UserGuildStatusID `json:"userGuildStatusId"`
+				UserGuildStatus   utils.UserGuildStatus   `json:"userGuildStatus"`
+				GuildID           uint                    `json:"guildId"`
+			}
+
+			type Guild struct {
+				ID         uint        `json:"id"`
+				CreatedAt  time.Time   `json:"createdAt"`
+				Name       string      `json:"name"`
+				Slug       string      `json:"slug"`
+				UserCount  uint        `json:"userCount"`
+				SubTitle   string      `json:"subTitle"`
+				Profile    string      `json:"profile"`
+				Money      uint        `json:"money"`
+				UserGuilds []UserGuild `json:"userGuilds"`
+			}
+
+			var guild Guild
+
+			if err := cfg.DB.Preload("UserGuilds").Preload(
+				"UserGuilds.UserGuildStatus",
+			).Preload("UserGuilds.User").Where(
+				&utils.Guild{Slug: r.Slug},
+			).Take(&guild).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 400, Res("不存在这个公会", nil)
 			} else if err != nil {
 				c.Error(err)

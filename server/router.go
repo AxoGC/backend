@@ -12,6 +12,7 @@ func GetRouter(cfg *HandlerConfig) *gin.Engine {
 
 	utils.RegisterHandlers(r, cfg,
 		ListServers,
+		GetServers,
 		GetOnline,
 	)
 

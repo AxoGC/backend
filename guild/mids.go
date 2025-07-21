@@ -30,9 +30,9 @@ func CheckJoinMidWare(cfg *p.Config, join bool) gin.HandlerFunc {
 	)
 */
 
-func WithGuildRolesAuth[T any](roles []utils.DictID, hf utils.HandlerFunc[T]) utils.HandlerFunc[T] {
+func WithGuildRolesAuth[T any](roles []utils.UserGuildStatusID, hf utils.HandlerFunc[T]) utils.HandlerFunc[T] {
 	return func(c *gin.Context, u *utils.User, r *T) (int, *utils.Resp) {
-		if !slices.Contains(roles, u.GuildRoleID) {
+		if !slices.Contains(roles, u.UserGuild.UserGuildStatusID) {
 			return 400, Res("你的公会角色不满足", nil)
 		}
 		return 0, nil

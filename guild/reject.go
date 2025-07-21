@@ -1,10 +1,6 @@
 package main
 
-import (
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-)
+/*
 
 func Reject(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/reject", p.Preload(
@@ -27,3 +23,4 @@ func Reject(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		),
 	)
 }
+*/

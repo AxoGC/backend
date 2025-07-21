@@ -105,36 +105,36 @@ type PaginateConfig struct {
 }
 
 func Paginate(c *gin.Context, cfg *PaginateConfig) func(db *gorm.DB) *gorm.DB {
+	page := 1
+	pageSize := 10
+	pageKey := "page"
+	pageSizeKey := "page_size"
+	if cfg != nil {
+		if cfg.DefaultPage != 0 {
+			page = cfg.DefaultPage
+		}
+		if cfg.DefaultPageSize != 0 {
+			pageSize = cfg.DefaultPageSize
+		}
+		if cfg.PageKey != "" {
+			pageKey = cfg.PageKey
+		}
+		if cfg.PageSizeKey != "" {
+			pageSizeKey = cfg.PageSizeKey
+		}
+		if cfg.KeyPrefix != "" {
+			pageKey = cfg.KeyPrefix + "_" + pageKey
+			pageSizeKey = cfg.KeyPrefix + "_" + pageSizeKey
+		}
+	}
+	if value, err := strconv.Atoi(c.Query(pageKey)); err == nil {
+		page = value
+	}
+	if value, err := strconv.Atoi(c.Query(pageSizeKey)); err == nil {
+		pageSize = value
+	}
 	return func(db *gorm.DB) *gorm.DB {
-		page := 1
-		pageSize := 10
-		pageKey := "page"
-		pageSizeKey := "page_size"
-		if cfg != nil {
-			if cfg.DefaultPage != 0 {
-				page = cfg.DefaultPage
-			}
-			if cfg.DefaultPageSize != 0 {
-				pageSize = cfg.DefaultPageSize
-			}
-			if cfg.PageKey != "" {
-				pageKey = cfg.PageKey
-			}
-			if cfg.PageSizeKey != "" {
-				pageSizeKey = cfg.PageSizeKey
-			}
-			if cfg.KeyPrefix != "" {
-				pageKey = cfg.KeyPrefix + "_" + pageKey
-				pageSizeKey = cfg.KeyPrefix + "_" + pageSizeKey
-			}
-		}
-		if value, err := strconv.Atoi(c.Query(pageKey)); err != nil {
-			page = value
-		}
-		if value, err := strconv.Atoi(c.Query(pageSizeKey)); err != nil {
-			pageSize = value
-		}
-		return db.Limit(pageSize).Offset((page - 1) * pageSize)
+		return db.Offset((page - 1) * pageSize).Limit(pageSize)
 	}
 }
 

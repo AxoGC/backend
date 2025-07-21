@@ -1,12 +1,6 @@
 package main
 
-import (
-	"time"
-
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-)
+/*
 
 func GetMyGuild(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "GET", "/my", p.Preload(
@@ -42,3 +36,4 @@ func GetMyGuild(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		},
 	)
 }
+*/

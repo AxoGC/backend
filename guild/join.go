@@ -1,13 +1,6 @@
 package main
 
-import (
-	"errors"
-
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-)
+/*
 
 func Join(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/join/:slug", p.Preload(
@@ -35,3 +28,4 @@ func Join(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		),
 	)
 }
+*/

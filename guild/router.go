@@ -24,24 +24,16 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 		Env: config,
 	}
 
+	r.Use(utils.CorsMidWare)
 	r.Use(utils.LogMidWare(db))
 
 	utils.RegisterHandlers(r, &cfg,
 		ListGuilds,
 		GetGuilds,
-		GetMyGuild,
 		AddGuilds,
-		EditGuilds,
-		DelGuilds,
-		Approve,
-		Grant,
-		Join,
-		Kick,
-		Quit,
-		Reject,
-		Transfer,
 	)
 
+	r.Use(utils.GetRoutes(r))
 	r.Use(utils.LogMidWare(db))
 
 	return r

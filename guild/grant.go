@@ -1,10 +1,6 @@
 package main
 
-import (
-	"github.com/axogc/backend/utils"
-	p "github.com/bestcb2333/gin-gorm-preloader/v2"
-	"github.com/gin-gonic/gin"
-)
+/*
 
 func Grant(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 	return "POST", "/grant", p.Preload(
@@ -26,3 +22,4 @@ func Grant(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		),
 	)
 }
+*/

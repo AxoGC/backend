@@ -16,13 +16,8 @@ func GetRecommends(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 		&cfg.Config, &p.Option{Bind: p.Query}, nil,
 		func(c *gin.Context, u *utils.User, r *struct {
 			Option string `form:"option"`
-			Count  int    `form:"count"`
 			Forum  string `form:"forum"`
 		}) (int, *utils.Resp) {
-
-			if r.Count < 0 || r.Count > 100 {
-				return 400, Res("请输入0 ~ 100的数字", nil)
-			}
 
 			type Forum struct {
 				ID    uint   `json:"id"`
@@ -52,7 +47,7 @@ func GetRecommends(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 				s.Model(new(utils.Forum)),
 			).Preload("User",
 				s.Model(new(utils.User)),
-			).Limit(r.Count)
+			).Limit(6)
 			switch r.Option {
 			case "popular":
 				query = query.Order("review_count DESC")

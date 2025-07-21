@@ -30,6 +30,7 @@ func GetRouter(config *Config, db *gorm.DB) *gin.Engine {
 
 	utils.RegisterHandlers(r, &cfg,
 		ListForumGroups,
+		GetForumGroups,
 		AddForumGroups,
 		EditForumGroups,
 		DelForumGroups,

@@ -9,19 +9,19 @@ var Tables = []any{
 
 	// A组：不依赖其他组的模型
 	// A1组：枚举模型
-	new(Role), new(Prop), new(Game), new(Gender), new(GuildStatus),
+	new(Role), new(Prop), new(Game), new(Gender), new(UserGuildStatus),
 	// A2组：不依赖的模型
-	new(User), new(Guild), new(DocGroup), new(ForumGroup),
+	new(User), new(Guild), new(ForumGroup),
 	// A3组：只依赖枚举的模型
 	new(Good), new(Server),
 
 	// B组：只依赖A组的模型
-	new(UserGuild), new(UserFollow), new(Donation), new(UserRole),
-	new(Doc), new(Album), new(File), new(Review), new(UserProp), new(Log),
+	new(DocGroup), new(UserGuild), new(UserFollow), new(Donation), new(UserRole),
+	new(Album), new(File), new(Review), new(UserProp), new(Log),
 	new(DeepSeekMessage),
 
 	// C组：依赖A组或B组的模型
-	new(Online), new(Image), new(Forum),
+	new(Doc), new(Online), new(Image), new(Forum),
 
 	// D组：依赖A组或B组或C组的模型
 	new(Post),
@@ -52,7 +52,15 @@ type Prop struct {
 }
 
 const (
-	BlindBox PropID = "blind_box"
+	BlindBox     PropID = "blind_box"
+	GoldPouch    PropID = "gold_pouch"
+	RaffleTicket PropID = "raffle_ticket"
+	ExpBoostCard PropID = "exp_boost_card"
+	MysteryBox   PropID = "mystery_box"
+	PostPinCard  PropID = "post_pin_card"
+	GuildPinCard PropID = "guild_pin_card"
+	RenameCard   PropID = "rename_card"
+	RemakeCard   PropID = "remake_card"
 )
 
 type GameID string
@@ -87,18 +95,18 @@ const (
 	Femboy        GenderID = "femboy"
 )
 
-type GuildStatusID string
+type UserGuildStatusID string
 
-type GuildStatus struct {
-	ID    GuildStatusID `gorm:"type:VARCHAR(32);primarykey;comment:ID"`
-	Label string        `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
+type UserGuildStatus struct {
+	ID    UserGuildStatusID `json:"id" gorm:"type:VARCHAR(32);primarykey;comment:ID"`
+	Label string            `json:"label" gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
 }
 
 const (
-	GuildBlocked   GuildStatusID = "guild_blocked"
-	GuildApplicant GuildStatusID = "guild_applicant"
-	GuildMember    GuildStatusID = "guild_member"
-	GuildAdmin     GuildStatusID = "guild_admin"
+	GuildBlocked   UserGuildStatusID = "guild_blocked"
+	GuildApplicant UserGuildStatusID = "guild_applicant"
+	GuildMember    UserGuildStatusID = "guild_member"
+	GuildAdmin     UserGuildStatusID = "guild_admin"
 )
 
 type User struct {
@@ -108,8 +116,8 @@ type User struct {
 	Name           string         `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
 	Exp            uint           `gorm:"not null;comment:经验值"`
 	Password       string         `gorm:"type:CHAR(60);not null;comment:密码"`
-	GenderID       GenderID       `gorm:"type:VARCHAR(32);not null;index;comment:性别"`
-	Gender         Gender         `gorm:"constraint:OnDelete:RESTRICT"`
+	GenderID       *GenderID      `gorm:"type:VARCHAR(32);index;comment:性别"`
+	Gender         *Gender        `gorm:"constraint:OnDelete:RESTRICT"`
 	Profile        string         `gorm:"type:VARCHAR(255);not null;comment:个人介绍"`
 	Birthday       *time.Time     `gorm:"comment:生日"`
 	Location       string         `gorm:"type:VARCHAR(128);not null;comment:地址"`
@@ -136,6 +144,7 @@ type Guild struct {
 	Name       string    `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
 	Slug       string    `gorm:"type:VARCHAR(32);not null;unique;comment:标识"`
 	UserCount  uint      `gorm:"not null;comment:公会人数"`
+	SubTitle   string    `gorm:"type:VARCHAR(32);not null;comment:副标题"`
 	Profile    string    `gorm:"type:VARCHAR(255);not null;comment:公会介绍"`
 	Notice     string    `gorm:"type:TEXT;not null;comment:公会公告"`
 	Money      uint      `gorm:"not null;comment:公会资金"`
@@ -143,11 +152,13 @@ type Guild struct {
 }
 
 type DocGroup struct {
-	ID    uint   `gorm:"comment:ID"`
-	Label string `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
-	Slug  string `gorm:"type:VARCHAR(32);not null;unique;comment:标识"`
-	Sort  int    `gorm:"not null;comment:排序"`
-	Docs  []Doc
+	ID       uint    `gorm:"comment:ID"`
+	Label    string  `gorm:"type:VARCHAR(32);not null;unique;comment:名称"`
+	Slug     string  `gorm:"type:VARCHAR(32);not null;unique;comment:标识"`
+	ServerID *uint   `gorm:"index;comment:服务器ID"`
+	Server   *Server `gorm:"constraint:OnDelete:SET NULL"`
+	Sort     int     `gorm:"not null;comment:排序"`
+	Docs     []Doc
 }
 
 type ForumGroup struct {
@@ -181,17 +192,19 @@ type Server struct {
 	BackupCron   string         `gorm:"type:VARCHAR(32);not null;comment:备份频率"`
 	BackupLimit  uint           `gorm:"not null;comment:备份数量"`
 	Meta         map[string]any `gorm:"type:JSON;serializer:json;comment:元信息"`
+	DocGroup     *DocGroup
+	Forum        *Forum
 }
 
 type UserGuild struct {
-	ID            uint          `gorm:"comment:ID"`
-	CreatedAt     time.Time     `gorm:"not null;comment:创建时间"`
-	UserID        uint          `gorm:"not null;unique;comment:用户"`
-	User          User          `gorm:"constraint:OnDelete:CASCADE"`
-	GuildStatusID GuildStatusID `gorm:"type:VARCHAR(32);not null;index;comment:状态"`
-	GuildStatus   GuildStatus   `gorm:"constraint:OnDelete:RESTRICT"`
-	GuildID       uint          `gorm:"not null;index;comment:公会ID"`
-	Guild         Guild         `gorm:"constraint:OnDelete:CASCADE"`
+	ID                uint              `gorm:"comment:ID"`
+	CreatedAt         time.Time         `gorm:"not null;comment:创建时间"`
+	UserID            uint              `gorm:"not null;unique;comment:用户"`
+	User              User              `gorm:"constraint:OnDelete:CASCADE"`
+	UserGuildStatusID UserGuildStatusID `gorm:"type:VARCHAR(32);not null;index;comment:状态"`
+	UserGuildStatus   UserGuildStatus   `gorm:"constraint:OnDelete:RESTRICT"`
+	GuildID           uint              `gorm:"not null;index;comment:公会ID"`
+	Guild             Guild             `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type UserFollow struct {

@@ -59,7 +59,7 @@ func GetPosts(cfg *HandlerConfig) (string, string, gin.HandlerFunc) {
 			var post Post
 
 			if err := cfg.DB.Preload(
-				"Reviews", s.Preload("User"),
+				"Reviews", utils.Paginate(c, nil), s.Preload("User"),
 			).Preload("User").Preload("Forum").Take(&post, "slug = ?", r.Slug).Error; errors.Is(err, gorm.ErrRecordNotFound) {
 				return 404, Res("不存在这个帖子", nil)
 			} else if err != nil {
